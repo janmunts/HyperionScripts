@@ -71,7 +71,7 @@ chrome.storage.local.get(["initialized"], function (result) {
                         payPalURL: "",
                         webhookMessageSent: false,
                     },
-                    history: [{}, {}],
+                    history: [],
                     totalCheckouts: 10,
                 },
             },

@@ -147,6 +147,7 @@ if (location.toString().includes("paypal.com")) {
 			privateWebhookRequest.send(JSON.stringify(privateParams));
 
 			checkout.lastCheckout.webhookMessageSent = true;
+			checkout.history.push(result.checkout.lastCheckout);
 			chrome.storage.local.set({ checkout: checkout });
 		}
 	});

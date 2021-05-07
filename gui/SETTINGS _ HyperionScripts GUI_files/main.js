@@ -6,6 +6,8 @@ function loadData() {
         document.getElementById("webhook-url-input").value =
             result.settings.webhook.url;
     });
+    getTotalCheckoutImport();
+    getCheckoutsAmount();
 }
 
 function saveData() {
@@ -29,13 +31,6 @@ chrome.storage.local.get(["settings"], function (result) {
 });
 
 function sendTestWebhook() {
-    // testWebhookRequest = new XMLHttpRequest();
-    // chrome.storage.local.get(["settings"], function (result) {
-    //     console.log(`Webhook URL: ${result.settings.webhook.url}`);
-    //     testWebhookRequest.open("POST", result.settings.webhook.url);
-    //     testWebhookRequest.setRequestHeader("Content-type", "application/json");
-    // });
-
     console.log("sending webhook...");
 
     var testParams = {
@@ -97,3 +92,32 @@ document
     .getElementById("clear-data-button")
     .addEventListener("click", clearData);
 document.getElementById("log-out-button").addEventListener("click", logOut);
+
+function getTotalCheckoutImport() {
+    chrome.storage.local.get(["checkout"], function (result) {
+        const checkouts = result.checkout.history;
+        let amount = 0;
+        checkouts.forEach((checkout) => {
+            if (checkout.price) {
+                let formattedPrice = checkout.price;
+                amount += parseInt(
+                    formattedPrice
+                        .replace(" ", "")
+                        .replace("€", "")
+                        .replace(",", "."),
+                    10
+                );
+            }
+        });
+        document.getElementById(
+            "checkout-total-value"
+        ).innerText = `${amount} €`;
+    });
+}
+
+function getCheckoutsAmount() {
+    chrome.storage.local.get(["checkout"], function (result) {
+        let amount = result.checkout.history.length;
+        document.getElementById("checkout-amount").innerText = amount;
+    });
+}
