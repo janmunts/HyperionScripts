@@ -1,18 +1,3 @@
-// chrome.storage.local.set({
-//     websites: {
-//         solebox: {
-//             profile: {},
-//             mode: "SAFE",
-//             sizes: [],
-//         },
-//         snipes: {
-//             profile: {},
-//             mode: "SAFE",
-//             sizes: [],
-//         },
-//     },
-// });
-
 function loadProfileList(elementID) {
     chrome.storage.local.get(["profiles", "websites"], function (result) {
         if (result.profiles.list) {
@@ -23,15 +8,29 @@ function loadProfileList(elementID) {
                 x.add(option);
             });
             console.log(result.profiles);
+            console.log(result.websites);
             if (elementID === "sbx-profile-select") {
+                console.log("selecting solebox profile");
                 if (result.websites.solebox.profile) {
-                    document.getElementById("profile-select").value =
-                        result.websites.solebox.profie.profileName;
+                    document
+                        .getElementById("mySelect")
+                        .options.forEach(function (option) {
+                            if (
+                                option.innerHTML ===
+                                result.websites.solebox.profile.profileName
+                            ) {
+                                option.selecte4d = true;
+                            }
+                        });
+                    // document.getElementById("sbx-profile-select").value =
+                    //     result.websites.solebox.profile.profileName;
+                    // console.log(result.websites.solebox.profile.profileName);
                 }
             } else if (elementID === "snipes-profile-select") {
+                console.log("selecting snipes profile");
                 if (result.websites.snipes.profile) {
-                    document.getElementById("profile-select").value =
-                        result.websites.snipes.profie.profileName;
+                    document.getElementById("snipes-profile-select").value =
+                        result.websites.snipes.profile.profileName;
                 }
             }
         }
