@@ -1,0 +1,39 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    background-color: rgb(252, 251, 237);
+    text-align: center;
+    border: 3px solid green;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1 {
+    color: rgb(252, 251, 237);
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    background-color: rgb(39, 43, 46);
+    height: min-content;
+    width: 100%;
+    border: solid rgb(20, 20, 20);
+    /* border-radius: 8px; */
+    margin: auto;
+}
+
+input {
+    border: 2px solid rgb(20, 20, 20);
+    border-radius: 3px;
+}
+
+div {
+    border: 3px solid green;
+}
+
+form {
+    border: 3px solid red;
+    width: 50%;
+}
