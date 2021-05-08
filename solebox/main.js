@@ -890,14 +890,14 @@ const requests = {
 		},
 		shipping: {
 			submitted: false,
-			adressID: "",
+			addressID: "",
 			shipUUID: "",
 			process() {
 				requests.generateCSRF(
-					requests.checkout.shipping.getAdressID
+					requests.checkout.shipping.getaddressID
 				);
 			},
-			getAdressID() {
+			getaddressID() {
 				console.log("Getting shipping info...");
 				fetch(
 					"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-SelectShippingMethod?format=ajax",
@@ -929,7 +929,7 @@ const requests = {
 					.then((response) => response.json())
 					.then((data) => {
 						// console.log(data.customer.addresses[0].addressId);
-						requests.checkout.shipping.adressID =
+						requests.checkout.shipping.addressID =
 							data.customer.addresses[0].addressId;
 						requests.checkout.shipping.getRates();
 					});
@@ -940,6 +940,19 @@ const requests = {
 					console.log(
 						"Selected profile loaded, recalculating shipping rates..."
 					);
+					let address2 = "";
+					if (
+						result.websites.solebox.profile.address2 != "" &&
+						result.websites.solebox.profile.address2 !=
+							undefined
+					) {
+						address2 = result.websites.solebox.profile.address2.replaceAll(
+							" ",
+							"+"
+						);
+					} else {
+						address2 = "";
+					}
 					fetch(
 						"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-ShippingRates?format=ajax",
 						{
@@ -963,10 +976,10 @@ const requests = {
 							referrerPolicy:
 								"strict-origin-when-cross-origin",
 							body: `selected=true&id=${
-								requests.checkout.shipping.adressID
+								requests.checkout.shipping.addressID
 							}&addressType=${
 								result.websites.solebox.profile
-									.adressType
+									.addressType
 							}&snipesStore=&hermesId&postOfficeNumber=&packstationNumber=&postNumber=&postalCode=${
 								result.websites.solebox.profile.zipCode
 							}&countryCode=${
@@ -981,10 +994,7 @@ const requests = {
 							)}&city=${result.websites.solebox.profile.city.replaceAll(
 								" ",
 								"+"
-							)}&address2=${result.websites.solebox.profile.adress2.replaceAll(
-								" ",
-								"+"
-							)}&lastName=${
+							)}&address2=${address2}}&lastName=${
 								result.websites.solebox.profile.lastName
 							}&firstName=${
 								result.websites.solebox.profile.name
@@ -1013,7 +1023,7 @@ const requests = {
 				console.log("Submitting shipping...");
 				chrome.storage.local.get(["websites"], function (result) {
 					fetch(
-						`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-SubmitShipping?region=europe&country=undefined&addressId=${requests.checkout.shipping.adressID}&format=ajax`,
+						`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-SubmitShipping?region=europe&country=undefined&addressId=${requests.checkout.shipping.addressID}&format=ajax`,
 						{
 							headers: {
 								accept:
@@ -1034,7 +1044,7 @@ const requests = {
 								"https://www.solebox.com/de_DE/checkout?stage=shipping",
 							referrerPolicy:
 								"strict-origin-when-cross-origin",
-							body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.adressID}&dwfrm_shipping_shippingAddress_addressFields_title=${result.websites.solebox.profile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${result.websites.solebox.profile.name}&dwfrm_shipping_shippingAddress_addressFields_lastName=${result.websites.solebox.profile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${result.websites.solebox.profile.zipCode}&dwfrm_shipping_shippingAddress_addressFields_city=${result.websites.solebox.profile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${result.websites.solebox.profile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${result.websites.solebox.profile.streetNumber}&dwfrm_shipping_shippingAddress_addressFields_address1=${result.websites.solebox.profile.street}&dwfrm_shipping_shippingAddress_addressFields_address2=${result.websites.solebox.profile.adress2}&dwfrm_shipping_shippingAddress_addressFields_phone=${result.websites.solebox.profile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${result.websites.solebox.profile.countryCode}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${result.websites.solebox.profile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${result.websites.solebox.profile.name}&dwfrm_billing_billingAddress_addressFields_lastName=${result.websites.solebox.profile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${result.websites.solebox.profile.zipCode}&dwfrm_billing_billingAddress_addressFields_city=${result.websites.solebox.profile.city}&dwfrm_billing_billingAddress_addressFields_street=${result.websites.solebox.profile.street}&dwfrm_billing_billingAddress_addressFields_suite=${result.websites.solebox.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address1=${result.websites.solebox.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address2=${result.websites.solebox.profile.adress2}&dwfrm_billing_billingAddress_addressFields_countryCode=${result.websites.solebox.profile.countryCode}&dwfrm_billing_billingAddress_addressFields_phone=${result.websites.solebox.profile.phone}&dwfrm_contact_email=${result.websites.solebox.profile.email}&dwfrm_contact_phone=${result.websites.solebox.profile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
+							body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${result.websites.solebox.profile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${result.websites.solebox.profile.name}&dwfrm_shipping_shippingAddress_addressFields_lastName=${result.websites.solebox.profile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${result.websites.solebox.profile.zipCode}&dwfrm_shipping_shippingAddress_addressFields_city=${result.websites.solebox.profile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${result.websites.solebox.profile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${result.websites.solebox.profile.streetNumber}&dwfrm_shipping_shippingAddress_addressFields_address1=${result.websites.solebox.profile.street}&dwfrm_shipping_shippingAddress_addressFields_address2=${result.websites.solebox.profile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${result.websites.solebox.profile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${result.websites.solebox.profile.countryCode}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${result.websites.solebox.profile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${result.websites.solebox.profile.name}&dwfrm_billing_billingAddress_addressFields_lastName=${result.websites.solebox.profile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${result.websites.solebox.profile.zipCode}&dwfrm_billing_billingAddress_addressFields_city=${result.websites.solebox.profile.city}&dwfrm_billing_billingAddress_addressFields_street=${result.websites.solebox.profile.street}&dwfrm_billing_billingAddress_addressFields_suite=${result.websites.solebox.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address1=${result.websites.solebox.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address2=${result.websites.solebox.profile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${result.websites.solebox.profile.countryCode}&dwfrm_billing_billingAddress_addressFields_phone=${result.websites.solebox.profile.phone}&dwfrm_contact_email=${result.websites.solebox.profile.email}&dwfrm_contact_phone=${result.websites.solebox.profile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
 							method: "POST",
 							mode: "cors",
 							credentials: "include",

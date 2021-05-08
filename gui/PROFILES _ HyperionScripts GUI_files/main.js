@@ -1,6 +1,6 @@
 function loadProfileList() {
 	chrome.storage.local.get(["profiles"], function (result) {
-		if (result.profiles.list) {
+		if (result.profiles.list && result.profiles.list.length > 0) {
 			result.profiles.list.forEach((element) => {
 				var x = document.getElementById("profile-select");
 				var option = document.createElement("option");
@@ -54,10 +54,9 @@ function loadProfileData(profile) {
 	document.getElementById("email").value = profile.email;
 	document.getElementById("password").value = profile.password;
 	document.getElementById("phone").value = profile.phone;
-	document.getElementById("address").value = profile.address;
-	// document.getElementById(
-	//     "address"
-	// ).value = `${profile.street}, ${profile.streetNumber} ${profile.address2}, ${profile.zipCode} ${profile.city}`;
+	console.log("loading address...");
+	console.log(profile);
+	document.getElementById("address").value = loadAddress(profile);
 
 	// cc data
 	if (profile.cc) {
@@ -123,7 +122,13 @@ function saveAsNewProfile() {
 		email: document.getElementById("email").value,
 		password: document.getElementById("password").value,
 		phone: document.getElementById("phone").value,
-		address: document.getElementById("address").value,
+		// address: document.getElementById("address").value,
+		zipCode: formatAddress().zipCode,
+		countryCode: formatAddress().countryCode,
+		streetNumber: formatAddress().streetNumber,
+		street: formatAddress().street,
+		city: formatAddress().city,
+		adress2: formatAddress().address2,
 
 		// cc data
 		cc: {
@@ -174,3 +179,61 @@ function deleteProfile() {
 		}
 	});
 }
+
+function formatAddress() {
+	const inputAddress = document.getElementById("address").value;
+	var indices = [];
+	for (var i = 0; i < inputAddress.length; i++) {
+		if (inputAddress[i] === ",") indices.push(i);
+	}
+
+	console.log(indices);
+
+	i = indices.length - 4;
+
+	let addressInfo = {
+		street: inputAddress
+			.slice(0, indices[0])
+			.replace(",", "")
+			.replace(" ", ""),
+		streetNumber: inputAddress
+			.slice(indices[0], indices[1])
+			.replace(",", "")
+			.replace(" ", ""),
+		address2: "",
+		zipCode: inputAddress
+			.slice(indices[1 + i], indices[2 + i])
+			.replace(",", "")
+			.replace(" ", ""),
+		city: inputAddress
+			.slice(indices[2 + i], indices[3 + i])
+			.replace(",", "")
+			.replace(" ", ""),
+		countryCode: inputAddress
+			.slice(indices[3 + i])
+			.replace(",", "")
+			.replace(" ", ""),
+	};
+
+	if (i > 0) {
+		addressInfo.address2 = inputAddress
+			.slice(indices[1], indices[2])
+			.replace(",", "")
+			.replace(" ", "");
+	}
+
+	console.log(addressInfo);
+	return addressInfo;
+}
+
+function loadAddress(profile) {
+	if (profile.address2 || profile.address2 != "") {
+		return `${profile.street}, ${profile.streetNumber}, ${profile.address2}, ${profile.zipCode}, ${profile.city}, ${profile.countryCode}`;
+	} else {
+		return `${profile.street}, ${profile.streetNumber}, ${profile.zipCode}, ${profile.city}, ${profile.countryCode}`;
+	}
+}
+
+document.getElementById("address").addEventListener("change", formatAddress);
+
+// Maria Aurelia Capmany, 31, 1o 2a, 08250, Sant Joan de Vilatorrada, Spain
