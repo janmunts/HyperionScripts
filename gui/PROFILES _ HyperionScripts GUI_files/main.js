@@ -16,6 +16,14 @@ function loadProfileList() {
 	});
 }
 
+function clearProfileList() {
+	var select = document.getElementById("profile-select");
+	for (i = select.options.length - 1; i >= 0; i--) {
+		select.options.length.options[i] = null;
+	}
+	loadProfileList();
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 	loadData();
 });
@@ -76,19 +84,19 @@ function loadProfileData(profile) {
 document.getElementById("save-button").addEventListener("click", function () {
 	console.log("SAVE BUTTON CLICKED");
 	saveAsNewProfile();
-	loadProfileList();
+	clearProfileList();
 });
 
 document.getElementById("update-button").addEventListener("click", function () {
 	console.log("UPDATE BUTTON CLICKED");
 	updateProfile();
-	loadProfileList();
+	clearProfileList();
 });
 
 document.getElementById("delete-button").addEventListener("click", function () {
 	console.log("DELETE BUTTON CLICKED");
 	deleteProfile();
-	loadProfileList();
+	clearProfileList();
 });
 
 document
@@ -138,6 +146,26 @@ function saveAsNewProfile() {
 			ccv: document.getElementById("ccv").value,
 		},
 	};
+
+	chrome.storage.local.get(["profiles"], function (result) {
+		let profileNameAvailable = true;
+		let modifier = 1;
+		console.log(newProfile.profileName);
+		if (result.profiles.list && result.profiles.list.length > 0) {
+			result.profiles.list.forEach((profile) => {
+				if (profile.profileName === newProfile.profileName) {
+					profileNameAvailable = false;
+					newProfile.profileName = newProfile.profileName.concat(
+						" ",
+						modifier
+					);
+					modifier++;
+				}
+			});
+			console.log(newProfile.profileName);
+		}
+	});
+
 	chrome.storage.local.get(["profiles"], function (result) {
 		let newProfiles = result.profiles;
 		console.log(newProfiles);

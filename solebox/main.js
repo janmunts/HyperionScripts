@@ -122,6 +122,7 @@ const safe = {
 					.getAttribute("data-src")
 					.trim(),
 				payPalURL: "",
+				mode: "SAFE",
 				webhookMessageSent: false,
 			};
 			console.log(currentProduct);
@@ -566,7 +567,9 @@ const requests = {
 		else if (url.includes(paths.product)) {
 			console.log("Currently in a product page.");
 			global.waitForDOM(requests.product.check404);
-		} else if (url.includes(paths.checkout.path)) {
+		} else if (url.includes(paths.checkout.path))
+			global.waitForDOM(requests.saveItemInfo);
+		{
 			// if (url.toString().includes(paths.checkout.shipping)) {
 			global.waitForDOM(requests.checkout.shipping.process);
 			// 	} else if (url.toString().includes(paths.checkout.payment)) {
@@ -609,6 +612,40 @@ const requests = {
 				requests.checkout.CSRFtoken = data.csrf.token;
 				callback();
 			});
+	},
+	saveItemInfo() {
+		chrome.storage.local.get(["checkout"], function (result) {
+			let checkoutFromStorage = result.checkout;
+			let currentProduct = {
+				brand: document
+					.getElementsByClassName("t-product-brand-name")[0]
+					.innerHTML.trim(),
+				size: document
+					.getElementsByClassName(
+						"b-item-attribute b-item-attribute--size Size-"
+					)[0]
+					.getElementsByClassName("t-checkout-attr-value")[0]
+					.innerHTML,
+				model: document
+					.getElementsByClassName("t-product-main-name")[0]
+					.innerHTML.trim(),
+				website: location.hostname.replace("www.", ""),
+				price: document
+					.getElementsByClassName("b-product-tile-price-item")[0]
+					.innerHTML.trim(),
+				user: document.getElementById("dwfrm_contact_email").value,
+				imageURL: document
+					.getElementsByClassName("b-dynamic_image_content")[0]
+					.getAttribute("data-src")
+					.trim(),
+				payPalURL: "",
+				mode: "REQUESTS",
+				webhookMessageSent: false,
+			};
+			console.log(currentProduct);
+			checkoutFromStorage.lastCheckout = currentProduct;
+			chrome.storage.local.set({ checkout: checkoutFromStorage });
+		});
 	},
 	login() {
 		const CSRFtoken = document.querySelector("[name='csrf_token']").value;

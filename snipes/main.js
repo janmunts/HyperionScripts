@@ -1,76 +1,3 @@
-// chrome.storage.local.set({
-// 	initialized: true,
-// 	active: true,
-// 	account: {
-// 		discordAuth: true,
-// 		discordUsername: "munts#0101",
-// 	},
-// 	settings: {
-// 		webhook: {
-// 			url: "",
-// 			autoSuccessMessage: true,
-// 		},
-// 		features: {
-// 			preCart: {
-// 				generated: false,
-// 				generating: false,
-// 				profile: "",
-// 				link: "",
-// 			},
-// 			theme: "light",
-// 		},
-// 	},
-// 	profiles: {
-// 		selected: {
-// 			profileName: "",
-// 			country: "",
-// 			email: "janmuntsiglesias@gmail.com",
-// 			password: "Xirimoia95",
-// 			title: "Herr",
-// 			name: "Jan",
-// 			lastName: "Munts",
-// 			zipCode: "08250",
-// 			city: "Sant Joan de Vilatorrada",
-// 			street: "Maria Aurèlia Capmany",
-// 			adress2: "31-33 1º 2ª",
-// 			streetNumber: "31",
-// 			phone: "0034689708580",
-// 			country: "Spain",
-// 			countryCode: "ES",
-// 			adressType: "home-delivery",
-// 			region: "de_DE",
-// 		},
-// 		list: [
-// 			{
-// 				profileName: "",
-// 				country: "",
-// 				email: "",
-// 				password: "",
-// 				title: "",
-// 				name: "",
-// 				lastName: "",
-// 				zipCode: "",
-// 				city: "",
-// 				adress: "",
-// 				streetNumber: "",
-// 				phone: "",
-// 			},
-// 		],
-// 	},
-// 	websites: {
-// 		solebox: {
-// 			mode: "requests",
-// 			delay: "2500",
-// 			sizes: [42],
-// 		},
-// 		snipes: {
-// 			mode: "safe",
-// 			delay: "2500",
-// 			sizes: [],
-// 		},
-// 	},
-// });
-
 // check user authentication, extension activity and website mode.
 chrome.storage.local.get(
 	["initialized", "active", "account", "websites"],
@@ -81,23 +8,15 @@ chrome.storage.local.get(
 					console.log(
 						"Extension active, checking selected mode."
 					);
-					global.domainReplace();
-					if (result.websites.snipes.mode === "safe") {
-						console.log(
-							`Hi ${result.account.discordUsername}.`
-						);
-						console.log("Safe code successfully injected.");
+					console.log(`Hi ${result.account.discordUsername}.`);
+					if (result.websites.snipes.mode === "SAFE") {
 						safe.urlCheck();
+						console.log("Injecting safe code...");
 					} else if (
-						result.websites.snipes.mode === "requests"
+						result.websites.snipes.mode === "REQUESTS"
 					) {
-						console.log(
-							`Hi ${result.account.discordUsername}.`
-						);
-						console.log(
-							"Requests code successfully injected."
-						);
 						requests.urlCheck();
+						console.log("Injecting requests code...");
 					}
 				} else {
 					console.log("Safe code not injected.");
@@ -132,25 +51,6 @@ const paths = {
 };
 
 const global = {
-	// replaces the url geographical domain
-	domainReplace() {
-		chrome.storage.local.get(["profiles"], function (result) {
-			if (
-				location
-					.toString()
-					.slice(19, location.toString().indexOf("/", 18)) !==
-				result.profiles.selected.countryCode.toLowerCase()
-			) {
-				location.replace(
-					"https://www.snipes." +
-						result.profiles.selected.countryCode.toLowerCase() +
-						location
-							.toString()
-							.slice(location.toString().indexOf("/", 18))
-				);
-			}
-		});
-	},
 	// execute callback function once DOM in loaded
 	waitForDOM(callback, data) {
 		// console.log("Waiting for DOM to load.");
@@ -158,7 +58,8 @@ const global = {
 	},
 };
 
-const safe = {
+var safe = {
+	sizeAttrClassname: "",
 	// check url and execute the corresponding function
 	urlCheck() {
 		url = location.toString();
@@ -179,15 +80,36 @@ const safe = {
 			console.log("Currently in a product page.");
 			global.waitForDOM(safe.product.check404);
 		} else if (url.includes(paths.checkout.path)) {
+			safe.checkout.checkRegion();
 			global.waitForDOM(safe.saveItemInfo);
 			if (url.toString().includes(paths.checkout.shipping)) {
 				global.waitForDOM(safe.checkout.shipping);
 			} else if (url.toString().includes(paths.checkout.payment)) {
 				global.waitForDOM(safe.checkout.payment);
+			} else if (url.toString().includes(paths.checkout.placeOrder)) {
+				global.waitForDOM(safe.checkout.placeOrder);
 			}
 		}
 	},
+	checkRegion() {
+		if (url.includes(".es")) {
+			safe.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".com")) {
+			safe.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".at")) {
+			safe.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".nl")) {
+			safe.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".fr")) {
+			safe.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".it")) {
+			safe.sizeAttrClassname = "taglia Taglia-";
+		} else if (url.includes(".be")) {
+			safe.sizeAttrClassname = "talla Talla-";
+		}
+	},
 	saveItemInfo() {
+		safe.checkRegion();
 		chrome.storage.local.get(["checkout"], function (result) {
 			let checkoutFromStorage = result.checkout;
 			let currentProduct = {
@@ -196,7 +118,7 @@ const safe = {
 					.innerHTML.trim(),
 				size: document
 					.getElementsByClassName(
-						"b-item-attribute b-item-attribute--"
+						`b-item-attribute b-item-attribute--${safe.sizeAttrClassname}`
 					)[0]
 					.getElementsByClassName("t-checkout-attr-value")[0]
 					.innerHTML,
@@ -213,6 +135,7 @@ const safe = {
 					.getAttribute("data-src")
 					.trim(),
 				payPalURL: "",
+				mode: "SAFE",
 				webhookMessageSent: false,
 			};
 			console.log(currentProduct);
@@ -221,8 +144,11 @@ const safe = {
 		});
 	},
 	login() {
-		chrome.storage.local.get(["profiles"], function (result) {
-			if (result.profiles.selected) {
+		console.log("Logging in...");
+		chrome.storage.local.get(["websites"], function (result) {
+			console.log("Getting login data...");
+			console.log(result.websites);
+			if (result.websites.snipes.profile) {
 				const emailElement = document.getElementById(
 						"dwfrm_profile_customer_email"
 					),
@@ -233,8 +159,9 @@ const safe = {
 						"f-button f-button--medium f-button--primary f-button--full-width js-submit"
 					)[0];
 
-				emailElement.value = result.profiles.selected.email;
-				passwordElement.value = result.profiles.selected.password;
+				emailElement.value = result.websites.snipes.profile.email;
+				passwordElement.value =
+					result.websites.snipes.profile.password;
 				loginButtonElement.click();
 			}
 		});
@@ -345,16 +272,13 @@ const safe = {
 				});
 			},
 			select(sizes) {
-				let success = false;
 				// console.log("Function called.");
 				if (safe.product.sizes.available.list.length > 0) {
 					console.log(
 						"Available sizes detected, initializing select process."
 					);
 					if (!sizes.length > 0) {
-						console.log(
-							"No preferred sizes detected, trying to select a random one."
-						);
+						("No preferred sizes detected, trying to select a random one.");
 						safe.product.sizes.available.list[0].click();
 						safe.product.addToCart("safe");
 						// console.log("Size clicked.");
@@ -362,6 +286,7 @@ const safe = {
 						console.log(
 							"Preferred sizes found, attempting select."
 						);
+						let success = false;
 						sizes.forEach((size) => {
 							console.log(size);
 							if (
@@ -408,16 +333,14 @@ const safe = {
 			},
 		},
 		addToCart(mode) {
-			console.log("Adding to cart...");
 			let added = false;
 
 			chrome.runtime.onMessage.addListener(
 				(message, sender, sendResponse) => {
-					console.log("Listening to addToCart");
 					console.log(message.request);
 					if (
-						message.request.url.includes("snipes") &&
-						message.request.url.includes("AddProduct") &&
+						message.request.url.includes("snipes.") &&
+						message.request.url.includes("Cart-AddProduct") &&
 						message.request.statusCode < 400
 					) {
 						console.log("Successfully added to cart.");
@@ -488,7 +411,20 @@ const safe = {
 			});
 		},
 		shipping() {
-			console.log("Entering shippig info.");
+			console.log("Entering shipping info.");
+			chrome.runtime.onMessage.addListener(
+				(message, sender, sendResponse) => {
+					if (
+						message.request.url.includes("snipes.") &&
+						message.request.url.includes("SubmitShipping") &&
+						message.request.statusCode < 400
+					) {
+						console.log("Successfully submitted shipping.");
+						safe.checkout.payment();
+						safe.checkout.placeOrder();
+					}
+				}
+			);
 			if (
 				document.getElementsByClassName(
 					"b-shipment-selector js-home-delivery-tab"
@@ -512,7 +448,7 @@ const safe = {
 					.click();
 			} else {
 				chrome.torage.local.get(["profiles"], function (result) {
-					const selectedProfile = result.profiles.selected;
+					const selectedProfile = result.websites.snipes.profile;
 					document
 						.querySelectorAll('[data-value="Herr"]')[0]
 						.click();
@@ -540,13 +476,13 @@ const safe = {
 						selectedProfile.phone;
 				});
 			}
-			const waitForUrlChange = setInterval(function () {
-				console.log("Waiting for the shipping url to change.");
-				if (location.toString().includes(paths.checkout.payment)) {
-					safe.urlCheck();
-					clearInterval(waitForUrlChange);
-				}
-			}, 200);
+			// const waitForUrlChange = setInterval(function () {
+			// 	console.log("Waiting for the shipping url to change.");
+			// 	if (location.toString().includes(paths.checkout.payment)) {
+			// 		safe.urlCheck();
+			// 		clearInterval(waitForUrlChange);
+			// 	}
+			// }, 200);
 		},
 		payment() {
 			console.log("Selecting payment method.");
@@ -561,17 +497,54 @@ const safe = {
 				}
 			}, 300);
 
-			document
-				.querySelector("[value='submit-payment']")
-				.addEventListener("click", function () {
-					setTimeout(
-						clearInterval(retryPaymentButtonClick),
-						500
-					);
-					safe.checkout.placeOrder();
-				});
+			chrome.runtime.onMessage.addListener(
+				(message, sender, sendResponse) => {
+					if (
+						message.request.url.includes("snipes.") &&
+						message.request.url.includes("SubmitPayment") &&
+						message.request.statusCode < 400
+					) {
+						console.log("Successfully submitted payment.");
+						clearInterval(retryPaymentButtonClick);
+						safe.checkout.placeOrder();
+					}
+				}
+			);
 		},
 		placeOrder() {
+			console.log("Placing order...");
+			const placeOrderButtonClick = setInterval(function () {
+				document.querySelector("[value='place-order']").click();
+			}, 300);
+
+			chrome.runtime.onMessage.addListener(
+				(message, sender, sendResponse) => {
+					if (
+						message.request.url.includes("snipes.") &&
+						message.request.url.includes("PlaceOrder")
+					) {
+						console.log("Checkout request received.");
+						if (message.request.statusCode === 429) {
+							console.log(
+								"Red text detected, trying to force captcha..."
+							);
+							clearInterval(placeOrderButtonClick);
+							window.open(
+								location
+									.toString()
+									.slice(
+										0,
+										location
+											.toString()
+											.indexOf("/checkout")
+									) + paths.cart
+							);
+						}
+					}
+				}
+			);
+
+			/*
 			console.log("Attempting to place order.");
 			chrome.storage.local.get(["settings"], function (result) {
 				if (result.settings.features.preCart.generating !== true) {
@@ -610,12 +583,19 @@ const safe = {
 				} else {
 					location.replace("https://www.solebox.com/cart");
 				}
-			});
+			});*/
 		},
 	},
 };
 
-const requests = {
+var requests = {
+	regionData: {
+		snipesRegion: "",
+		snipesRegion2: "",
+		dwRegion: "",
+		delivery: "",
+		sizeAttrClassname: "",
+	},
 	urlCheck() {
 		url = location.toString();
 
@@ -636,16 +616,64 @@ const requests = {
 			console.log("Currently in a product page.");
 			global.waitForDOM(requests.product.check404);
 		} else if (url.includes(paths.checkout.path)) {
+			requests.checkRegion();
+			global.waitForDOM(safe.saveItemInfo);
 			// if (url.toString().includes(paths.checkout.shipping)) {
 			global.waitForDOM(requests.checkout.shipping.process);
 			// 	} else if (url.toString().includes(paths.checkout.payment)) {
 			// 		global.waitForDOM(checkout.payment);
 		}
 	},
+	checkRegion() {
+		if (url.includes(".es")) {
+			requests.regionData.snipesRegion = ".es";
+			requests.regionData.snipesRegion2 = "es_ES";
+			requests.regionData.dwRegion = "Sites-snse-SOUTH-Site";
+			requests.regionData.delivery = "home_delivery_es";
+			requests.regionData.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".com")) {
+			requests.regionData.snipesRegion = ".com";
+			requests.regionData.snipesRegion2 = "de_DE";
+			requests.regionData.dwRegion = "Sites-snse-DE-AT-Site";
+			requests.regionData.delivery = "home_delivery";
+			requests.regionData.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".at")) {
+			requests.regionData.snipesRegion = ".at";
+			requests.regionData.snipesRegion2 = "de_AT";
+			requests.regionData.dwRegion = "Sites-snse-DE-AT-Site";
+			requests.regionData.delivery = "home_delivery_at";
+			requests.regionData.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".nl")) {
+			requests.regionData.snipesRegion = ".nl";
+			requests.regionData.snipesRegion2 = "nl_NL";
+			requests.regionData.dwRegion = "Sites-snse-NL-BE-Site";
+			requests.regionData.delivery = "home_delivery_nl";
+			requests.regionData.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".fr")) {
+			requests.regionData.snipesRegion = ".fr";
+			requests.regionData.snipesRegion = "fr_FR";
+			requests.regionData.dwRegion = "Sites-snse-FR-Site";
+			requests.regionData.delivery = "home_delivery_fr";
+			requests.regionData.sizeAttrClassname = "talla Talla-";
+		} else if (url.includes(".it")) {
+			requests.regionData.snipesRegion = ".it";
+			requests.regionData.snipesRegion2 = "it_IT";
+			requests.regionData.dwRegion = "Sites-snse-SOUTH-Site";
+			requests.regionData.delivery = "home_delivery_it";
+			requests.regionData.sizeAttrClassname = "taglia Taglia-";
+		} else if (url.includes(".be")) {
+			requests.regionData.snipesRegion = ".be";
+			requests.regionData.snipesRegion2 = "nl_BE";
+			requests.regionData.dwRegion = "Sites-snse-NL-BE-Site";
+			requests.regionData.delivery = "home_delivery_be";
+			requests.regionData.sizeAttrClassname = "talla Talla-";
+		}
+	},
 	generateCSRF(callback) {
+		this.checkRegion();
 		console.log("Getting CSRF token...");
 		fetch(
-			"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CSRF-Generate?format=ajax",
+			`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CSRF-Generate?format=ajax`,
 			{
 				headers: {
 					accept:
@@ -662,7 +690,7 @@ const requests = {
 					"x-requested-with": "XMLHttpRequest",
 				},
 				referrer:
-					"https://www.solebox.com/de_DE/checkout?registration=false",
+					"https://www.snipes.es/checkout?registration=false",
 				referrerPolicy: "strict-origin-when-cross-origin",
 				body: null,
 				method: "POST",
@@ -678,6 +706,40 @@ const requests = {
 				requests.checkout.CSRFtoken = data.csrf.token;
 				callback();
 			});
+	},
+	saveItemInfo() {
+		chrome.storage.local.get(["checkout"], function (result) {
+			let checkoutFromStorage = result.checkout;
+			let currentProduct = {
+				brand: document
+					.getElementsByClassName("t-product-brand-name")[0]
+					.innerHTML.trim(),
+				size: document
+					.getElementsByClassName(
+						`b-item-attribute b-item-attribute--${safe.checkout.sizeAttrClassname}`
+					)[0]
+					.getElementsByClassName("t-checkout-attr-value")[0]
+					.innerHTML,
+				model: document
+					.getElementsByClassName("t-product-main-name")[0]
+					.innerHTML.trim(),
+				website: location.hostname.replace("www.", ""),
+				price: document
+					.getElementsByClassName("b-product-tile-price-item")[0]
+					.innerHTML.trim(),
+				user: document.getElementById("dwfrm_contact_email").value,
+				imageURL: document
+					.getElementsByClassName("b-dynamic_image_content")[0]
+					.getAttribute("data-src")
+					.trim(),
+				payPalURL: "",
+				mode: "REQUESTS",
+				webhookMessageSent: false,
+			};
+			console.log(currentProduct);
+			checkoutFromStorage.lastCheckout = currentProduct;
+			chrome.storage.local.set({ checkout: checkoutFromStorage });
+		});
 	},
 	login() {
 		const CSRFtoken = document.querySelector("[name='csrf_token']").value;
@@ -892,12 +954,11 @@ const requests = {
 				.then(() => {
 					if (error != true) {
 						console.log("Added to cart!");
-						requests.checkout.fullProcess();
+						snipes.startCheckout();
 					} else {
 						console.log(
 							"Error while adding to cart: " + errorMessage
 						);
-						requests.product.addToCart(pid);
 					}
 				});
 		},
@@ -905,7 +966,7 @@ const requests = {
 	cart: {
 		deleteItem(pid) {
 			fetch(
-				`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/Cart-RemoveProductLineItem?format=ajax&pid=${pid}&uuid=${uuid}`,
+				`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/Cart-RemoveProductLineItem?format=ajax&pid=0190033300000010&uuid=${uuid}`,
 				{
 					headers: {
 						accept:
@@ -932,7 +993,6 @@ const requests = {
 	},
 	checkout: {
 		CSRFtoken: "",
-		fullProcess() {},
 		redirect() {
 			console.log("Product added to cart, redirecting to checkout.");
 			chrome.storage.local.get(["settings"], function (result) {
@@ -960,56 +1020,109 @@ const requests = {
 		},
 		shipping: {
 			submitted: false,
-			adressID: "",
-			shipUUID: "",
+			addressID: "",
+			shipUUID: document.getElementsByClassName("b-shipping-header")[0]
+				.dataset.shipmentUuid,
 			process() {
-				requests.generateCSRF(
-					requests.checkout.shipping.getAdressID
-				);
+				requests.generateCSRF(requests.checkout.shipping.select);
 			},
-			getAdressID() {
-				console.log("Getting shipping info...");
+			select() {
 				fetch(
-					"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-SelectShippingMethod?format=ajax",
+					"https://www.snipes.es/on/demandware.store/Sites-snse-SOUTH-Site/es_ES/CheckoutShippingServices-SelectShippingMethod?format=ajax",
 					{
 						headers: {
 							accept:
 								"application/json, text/javascript, */*; q=0.01",
 							"accept-language":
-								"en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,ja-FR;q=0.6,ja;q=0.5",
+								"en-GB,en-US;q=0.9,en;q=0.8",
 							"content-type":
 								"application/x-www-form-urlencoded; charset=UTF-8",
-							"sec-ch-ua":
-								'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
-							"sec-ch-ua-mobile": "?0",
 							"sec-fetch-dest": "empty",
 							"sec-fetch-mode": "cors",
 							"sec-fetch-site": "same-origin",
 							"x-requested-with": "XMLHttpRequest",
 						},
 						referrer:
-							"https://www.solebox.com/de_DE/checkout",
+							"https://www.snipes.es/checkout?stage=shipping",
 						referrerPolicy: "strict-origin-when-cross-origin",
-						body: "methodID=home-delivery&shipmentUUID=",
+						body: `methodID=${requests.regionData.delivery}&shipmentUUID=${this.shipUUID}`,
 						method: "POST",
 						mode: "cors",
 						credentials: "include",
 					}
-				)
-					.then((response) => response.json())
-					.then((data) => {
-						// console.log(data.customer.addresses[0].addressId);
-						requests.checkout.shipping.adressID =
-							data.customer.addresses[0].addressId;
-						requests.checkout.shipping.getRates();
-					});
+				).then((response) => {
+					console.log(response);
+				});
+			},
+			validate() {
+				chrome.storage.local.get(["websites"], function (result) {
+					fetch(
+						`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutAddressServices-Validate?format=ajax`,
+						{
+							headers: {
+								accept:
+									"application/json, text/javascript, */*; q=0.01",
+								"accept-language":
+									"en-GB,en-US;q=0.9,en;q=0.8",
+								"content-type":
+									"application/x-www-form-urlencoded; charset=UTF-8",
+								"sec-fetch-dest": "empty",
+								"sec-fetch-mode": "cors",
+								"sec-fetch-site": "same-origin",
+								"x-requested-with": "XMLHttpRequest",
+							},
+							referrer:
+								"https://www.snipes.es/checkout?stage=shipping",
+							referrerPolicy:
+								"strict-origin-when-cross-origin",
+							body: `street=${
+								result.websites.snipes.profile.street.replace(
+									" ",
+									"+"
+								) +
+								result.websites.snipes.profile.address2.replace(
+									" ",
+									"+"
+								)
+							}&houseNo=${
+								result.websites.snipes.profile
+									.streetNumber
+							}&postalCode=${
+								result.websites.snipes.profile.zipCode
+							}&city=${result.websites.snipes.profile.city.replace(
+								" ",
+								"+"
+							)}&country=${requests.regionData.snipesRegion
+								.replace(".", "")
+								.toUpperCase()}&csrf_token=${
+								requests.checkout.CSRFtoken
+							}`,
+							method: "POST",
+							mode: "cors",
+							credentials: "include",
+						}
+					);
+				});
 			},
 			getRates() {
 				console.log("Getting shipping rates...");
-				chrome.storage.local.get(["profiles"], function (result) {
+				chrome.storage.local.get(["websites"], function (result) {
 					console.log(
 						"Selected profile loaded, recalculating shipping rates..."
 					);
+					let address2 = "";
+					if (
+						result.websites.snipes.profile.address2 != "" &&
+						result.websites.snipes.profile.address2 !=
+							undefined
+					) {
+						address2 = result.websites.snipes.profile.address2.replaceAll(
+							" ",
+							"+"
+						);
+					} else {
+						address2 = "";
+					}
 					fetch(
 						"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-ShippingRates?format=ajax",
 						{
@@ -1033,30 +1146,30 @@ const requests = {
 							referrerPolicy:
 								"strict-origin-when-cross-origin",
 							body: `selected=true&id=${
-								requests.checkout.shipping.adressID
+								requests.checkout.shipping.addressID
 							}&addressType=${
-								result.profiles.selected.adressType
+								result.websites.snipes.profile
+									.addressType
 							}&snipesStore=&hermesId&postOfficeNumber=&packstationNumber=&postNumber=&postalCode=${
-								result.profiles.selected.zipCode
+								result.websites.snipes.profile.zipCode
 							}&countryCode=${
-								result.profiles.selected.countryCode
+								result.websites.snipes.profile
+									.countryCode
 							}&carrierName=&suite=${
-								result.profiles.selected.streetNumber
-							}&street=${result.profiles.selected.street.replaceAll(
+								result.websites.snipes.profile
+									.streetNumber
+							}&street=${result.websites.snipes.profile.street.replaceAll(
 								" ",
 								"+"
-							)}&city=${result.profiles.selected.city.replaceAll(
+							)}&city=${result.websites.snipes.profile.city.replaceAll(
 								" ",
 								"+"
-							)}&address2=${result.profiles.selected.adress2.replaceAll(
-								" ",
-								"+"
-							)}&lastName=${
-								result.profiles.selected.lastName
+							)}&address2=${address2}}&lastName=${
+								result.websites.snipes.profile.lastName
 							}&firstName=${
-								result.profiles.selected.name
+								result.websites.snipes.profile.name
 							}&title=${
-								result.profiles.selected.title
+								result.websites.snipes.profile.title
 							}&csrf_token=${requests.checkout.CSRFtoken}`,
 							method: "POST",
 							mode: "cors",
@@ -1078,9 +1191,9 @@ const requests = {
 			},
 			submit() {
 				console.log("Submitting shipping...");
-				chrome.storage.local.get(["profiles"], function (result) {
+				chrome.storage.local.get(["websites"], function (result) {
 					fetch(
-						`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-SubmitShipping?region=europe&country=undefined&addressId=${requests.checkout.shipping.adressID}&format=ajax`,
+						`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-SubmitShipping?region=europe&country=undefined&addressId=${requests.checkout.shipping.addressID}&format=ajax`,
 						{
 							headers: {
 								accept:
@@ -1101,7 +1214,7 @@ const requests = {
 								"https://www.solebox.com/de_DE/checkout?stage=shipping",
 							referrerPolicy:
 								"strict-origin-when-cross-origin",
-							body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.adressID}&dwfrm_shipping_shippingAddress_addressFields_title=${result.profiles.selected.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${result.profiles.selected.name}&dwfrm_shipping_shippingAddress_addressFields_lastName=${result.profiles.selected.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${result.profiles.selected.zipCode}&dwfrm_shipping_shippingAddress_addressFields_city=${result.profiles.selected.city}&dwfrm_shipping_shippingAddress_addressFields_street=${result.profiles.selected.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${result.profiles.selected.streetNumber}&dwfrm_shipping_shippingAddress_addressFields_address1=${result.profiles.selected.street}&dwfrm_shipping_shippingAddress_addressFields_address2=${result.profiles.selected.adress2}&dwfrm_shipping_shippingAddress_addressFields_phone=${result.profiles.selected.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${result.profiles.selected.countryCode}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${result.profiles.selected.title}&dwfrm_billing_billingAddress_addressFields_firstName=${result.profiles.selected.name}&dwfrm_billing_billingAddress_addressFields_lastName=${result.profiles.selected.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${result.profiles.selected.zipCode}&dwfrm_billing_billingAddress_addressFields_city=${result.profiles.selected.city}&dwfrm_billing_billingAddress_addressFields_street=${result.profiles.selected.street}&dwfrm_billing_billingAddress_addressFields_suite=${result.profiles.selected.streetNumber}&dwfrm_billing_billingAddress_addressFields_address1=${result.profiles.selected.streetNumber}&dwfrm_billing_billingAddress_addressFields_address2=${result.profiles.selected.adress2}&dwfrm_billing_billingAddress_addressFields_countryCode=${result.profiles.selected.countryCode}&dwfrm_billing_billingAddress_addressFields_phone=${result.profiles.selected.phone}&dwfrm_contact_email=${result.profiles.selected.email}&dwfrm_contact_phone=${result.profiles.selected.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
+							body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${result.websites.snipes.profile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${result.websites.snipes.profile.name}&dwfrm_shipping_shippingAddress_addressFields_lastName=${result.websites.snipes.profile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${result.websites.snipes.profile.zipCode}&dwfrm_shipping_shippingAddress_addressFields_city=${result.websites.snipes.profile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${result.websites.snipes.profile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${result.websites.snipes.profile.streetNumber}&dwfrm_shipping_shippingAddress_addressFields_address1=${result.websites.snipes.profile.street}&dwfrm_shipping_shippingAddress_addressFields_address2=${result.websites.snipes.profile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${result.websites.snipes.profile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${result.websites.snipes.profile.countryCode}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${result.websites.snipes.profile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${result.websites.snipes.profile.name}&dwfrm_billing_billingAddress_addressFields_lastName=${result.websites.snipes.profile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${result.websites.snipes.profile.zipCode}&dwfrm_billing_billingAddress_addressFields_city=${result.websites.snipes.profile.city}&dwfrm_billing_billingAddress_addressFields_street=${result.websites.snipes.profile.street}&dwfrm_billing_billingAddress_addressFields_suite=${result.websites.snipes.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address1=${result.websites.snipes.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address2=${result.websites.snipes.profile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${result.websites.snipes.profile.countryCode}&dwfrm_billing_billingAddress_addressFields_phone=${result.websites.snipes.profile.phone}&dwfrm_contact_email=${result.websites.snipes.profile.email}&dwfrm_contact_phone=${result.websites.snipes.profile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
 							method: "POST",
 							mode: "cors",
 							credentials: "include",

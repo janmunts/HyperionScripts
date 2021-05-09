@@ -50,6 +50,11 @@ class publicWebhook {
 					value: product.price,
 					inline: true,
 				},
+				{
+					name: "Mode :paperclips:",
+					value: product.mode,
+					inline: true,
+				},
 			]),
 			(this.footer = {
 				text: "HypersionScripts v0.0.1",
