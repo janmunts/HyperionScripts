@@ -50,6 +50,11 @@ class publicWebhook {
                     value: product.price,
                     inline: true,
                 },
+                {
+                    name: "Mode :moneybag:",
+                    value: product.mode,
+                    inline: true,
+                },
             ]),
             (this.footer = {
                 text: "HypersionScripts v0.0.1",
@@ -101,8 +106,18 @@ class privateWebhook {
                     inline: true,
                 },
                 {
+                    name: "Mode :moneybag:",
+                    value: product.mode,
+                    inline: true,
+                },
+                {
                     name: "User :bust_in_silhouette:",
                     value: `||${product.user}||`,
+                    inline: true,
+                },
+                {
+                    name: "User :floppy_disk:",
+                    value: `||${product.profile}||`,
                     inline: true,
                 },
             ]),

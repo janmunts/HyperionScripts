@@ -88,7 +88,8 @@ function saveData() {
                 if (element.profileName === sbxProfileName) {
                     console.log(element);
                     sbxProfile = element;
-                } else if (element.profileName === snipesProfileName) {
+                }
+                if (element.profileName === snipesProfileName) {
                     console.log(element);
                     snipesProfile = element;
                 }
