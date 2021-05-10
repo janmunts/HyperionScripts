@@ -58,7 +58,7 @@ const global = {
 	},
 };
 
-var safe = {
+const safe = {
 	sizeAttrClassname: "",
 	// check url and execute the corresponding function
 	urlCheck() {
@@ -588,7 +588,7 @@ var safe = {
 	},
 };
 
-var requests = {
+const requests = {
 	regionData: {
 		snipesRegion: "",
 		snipesRegion2: "",
