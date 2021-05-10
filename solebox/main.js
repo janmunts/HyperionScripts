@@ -1,4 +1,3 @@
-// check user authentication, extension activity and website mode.
 chrome.storage.local.get(
 	["initialized", "active", "account", "websites"],
 	function (result) {
@@ -41,7 +40,6 @@ chrome.storage.local.get(
 	}
 );
 
-// define url paths of the different pages
 const paths = {
 	login: "/login",
 	product: "/p/",
@@ -58,15 +56,12 @@ const paths = {
 };
 
 const global = {
-	// execute callback function once DOM in loaded
 	waitForDOM(callback, data) {
-		// console.log("Waiting for DOM to load.");
 		document.addEventListener("DOMContentLoaded", callback(data));
 	},
 };
 
 const safe = {
-	// check url and execute the corresponding function
 	urlCheck() {
 		url = location.toString();
 
@@ -97,7 +92,7 @@ const safe = {
 		}
 	},
 	saveItemInfo() {
-		chrome.storage.local.get(["checkout"], function (result) {
+		chrome.storage.local.get(["checkout", "websites"], function (result) {
 			let checkoutFromStorage = result.checkout;
 			let currentProduct = {
 				brand: document
@@ -123,6 +118,7 @@ const safe = {
 					.trim(),
 				payPalURL: "",
 				mode: "SAFE",
+				profile: result.websites.solebox.profile.profileName,
 				webhookMessageSent: false,
 			};
 			console.log(currentProduct);
@@ -154,7 +150,6 @@ const safe = {
 		});
 	},
 	product: {
-		// checks if the product page gives 404 error
 		check404() {
 			if (
 				!document.getElementsByClassName(
@@ -165,7 +160,6 @@ const safe = {
 				safe.product.sizes.get();
 			} else {
 				console.log("Error 404 found in this product page.");
-				// message requests.js file to ATC by request
 			}
 		},
 		sizes: {
@@ -202,7 +196,6 @@ const safe = {
 						safe.product.sizes.list.push(size);
 					}
 				});
-				// console.log(safe.product.sizes.list);
 				this.checkSelected();
 			},
 			checkSelected() {
@@ -245,10 +238,7 @@ const safe = {
 						size.getAttribute(safe.product.sizes.attribute)
 					);
 				});
-				console
-					.log
-					// `Available numbers: ${safe.product.sizes.available.numbers}`
-					();
+				console.log();
 				this.loadSaved();
 			},
 			loadSaved() {
@@ -259,7 +249,6 @@ const safe = {
 				});
 			},
 			select(sizes) {
-				// console.log("Function called.");
 				if (safe.product.sizes.available.list.length > 0) {
 					console.log(
 						"Available sizes detected, initializing select process."
@@ -268,7 +257,6 @@ const safe = {
 						("No preferred sizes detected, trying to select a random one.");
 						safe.product.sizes.available.list[0].click();
 						safe.product.addToCart("safe");
-						// console.log("Size clicked.");
 					} else {
 						console.log(
 							"Preferred sizes found, attempting select."
@@ -288,12 +276,6 @@ const safe = {
 
 								safe.product.sizes.available.list.forEach(
 									(sizeElement) => {
-										// console.log(sizeElement);
-										// console.log(
-										// 	sizeElement.getAttribute(
-										// 		"data-attr-value"
-										// 	)
-										// );
 										if (
 											sizeElement.getAttribute(
 												"data-attr-value"
@@ -374,7 +356,6 @@ const safe = {
 		redirect() {
 			console.log("Product added to cart, redirecting to checkout.");
 			chrome.storage.local.get(["settings"], function (result) {
-				// console.log(result.settings.features.preCart.generated);
 				if (result.settings.features.preCart.generated !== true) {
 					location.replace(
 						location
@@ -463,13 +444,6 @@ const safe = {
 						selectedProfile.phone;
 				});
 			}
-			// const waitForUrlChange = setInterval(function () {
-			// 	console.log("Waiting for the shipping url to change.");
-			// 	if (location.toString().includes(paths.checkout.payment)) {
-			// 		safe.urlCheck();
-			// 		clearInterval(waitForUrlChange);
-			// 	}
-			// }, 200);
 		},
 		payment() {
 			console.log("Selecting payment method.");
@@ -499,50 +473,37 @@ const safe = {
 			);
 		},
 		placeOrder() {
-			setInterval(function () {
+			console.log("Placing order...");
+			const placeOrderButtonClick = setInterval(function () {
 				document.querySelector("[value='place-order']").click();
-			}, 200);
+			}, 300);
 
-			/*
-			console.log("Attempting to place order.");
-			chrome.storage.local.get(["settings"], function (result) {
-				if (result.settings.features.preCart.generating !== true) {
-					setTimeout(function () {
-						document
-							.querySelector("[value='place-order']")
-							.click();
-					}, 2000);
-
-					url = location.toString();
-
-					document
-						.querySelector("[value='place-order']")
-						.addEventListener(
-							"click",
-							clearInterval(placeOrderButtonClick)
-						);
-					var placeOrderButtonClick = setInterval(function () {
-						var warningElement = document.querySelectorAll(
-							'[data-namespace="checkout.placeorder"]'
-						)[0];
-
-						if (
-							warningElement.className.includes(
-								"t-uniserv-notice t-uniserv-notice--error"
-							)
-						) {
+			chrome.runtime.onMessage.addListener(
+				(message, sender, sendResponse) => {
+					if (
+						message.request.url.includes("solebox.") &&
+						message.request.url.includes("order")
+					) {
+						console.log("Checkout request received.");
+						if (message.request.statusCode === 429) {
+							console.log(
+								"Red text detected, trying to force captcha..."
+							);
 							clearInterval(placeOrderButtonClick);
-							window.open("https://www.solebox.com/cart");
+							window.open(
+								location
+									.toString()
+									.slice(
+										0,
+										location
+											.toString()
+											.indexOf("/checkout")
+									) + paths.cart
+							);
 						}
-
-						document
-							.querySelector("[value='place-order']")
-							.click();
-					}, 500);
-				} else {
-					location.replace("https://www.solebox.com/cart");
+					}
 				}
-			});*/
+			);
 		},
 	},
 };
@@ -561,19 +522,13 @@ const requests = {
 					global.waitForDOM(requests.cart.deleteItem);
 				}
 			});
-		} // else if (url.includes(paths.ATC)) {
-		// 	global.waitForDOM();
-		//}
-		else if (url.includes(paths.product)) {
+		} else if (url.includes(paths.product)) {
 			console.log("Currently in a product page.");
 			global.waitForDOM(requests.product.check404);
 		} else if (url.includes(paths.checkout.path))
 			global.waitForDOM(requests.saveItemInfo);
 		{
-			// if (url.toString().includes(paths.checkout.shipping)) {
 			global.waitForDOM(requests.checkout.shipping.process);
-			// 	} else if (url.toString().includes(paths.checkout.payment)) {
-			// 		global.waitForDOM(checkout.payment);
 		}
 	},
 	generateCSRF(callback) {
@@ -606,15 +561,16 @@ const requests = {
 		)
 			.then((response) => response.json())
 			.then((data) => {
-				// console.log(
-				// 	`Successfully obtained CSRF token: ${data.csrf.token}`
-				// );
 				requests.checkout.CSRFtoken = data.csrf.token;
 				callback();
 			});
 	},
 	saveItemInfo() {
-		chrome.storage.local.get(["checkout"], function (result) {
+		let user = "";
+		chrome.storage.local.get(["websites"], function (result) {
+			user = result.websites.solebox.profile.email;
+		});
+		chrome.storage.local.get(["checkout", "websites"], function (result) {
 			let checkoutFromStorage = result.checkout;
 			let currentProduct = {
 				brand: document
@@ -633,13 +589,14 @@ const requests = {
 				price: document
 					.getElementsByClassName("b-product-tile-price-item")[0]
 					.innerHTML.trim(),
-				user: document.getElementById("dwfrm_contact_email").value,
+				user: user,
 				imageURL: document
 					.getElementsByClassName("b-dynamic_image_content")[0]
 					.getAttribute("data-src")
 					.trim(),
 				payPalURL: "",
 				mode: "REQUESTS",
+				profile: result.websites.solebox.profile.profileName,
 				webhookMessageSent: false,
 			};
 			console.log(currentProduct);
@@ -670,12 +627,9 @@ const requests = {
 				mode: "cors",
 				credentials: "include",
 			}
-		).then(function (response) {
-			// console.log(response);
-		});
+		).then(function (response) {});
 	},
 	product: {
-		// checks if the product page gives 404 error
 		check404() {
 			if (
 				!document.getElementsByClassName(
@@ -686,7 +640,6 @@ const requests = {
 				requests.product.sizes.get();
 			} else {
 				console.log("Error 404 found in this product page.");
-				// message requests.js file to ATC by request
 			}
 		},
 		sizes: {
@@ -713,7 +666,6 @@ const requests = {
 						safe.product.sizes.list.push(size);
 					}
 				});
-				// console.log(safe.product.sizes.list);
 				this.checkSelected();
 			},
 			checkSelected() {
@@ -756,9 +708,6 @@ const requests = {
 						size.getAttribute(safe.product.sizes.attribute)
 					);
 				});
-				// console.log(
-				// 	`Available numbers: ${safe.product.sizes.available.numbers}`
-				// );
 				this.loadSaved();
 			},
 			loadSaved() {
@@ -777,14 +726,12 @@ const requests = {
 					if (!sizes.length > 0) {
 						("No preferred sizes detected, trying to select a random one.");
 						safe.product.sizes.available.list[0].click();
-						// console.log("Size clicked.");
 					} else {
 						console.log(
 							"Preferred sizes found, attempting select."
 						);
 						let success = false;
 						sizes.forEach((size) => {
-							// console.log(size);
 							if (
 								safe.product.sizes.available.numbers.includes(
 									size.toString()
@@ -797,12 +744,6 @@ const requests = {
 
 								safe.product.sizes.available.list.forEach(
 									(sizeElement) => {
-										// console.log(sizeElement);
-										// console.log(
-										// 	sizeElement.getAttribute(
-										// 		"data-attr-value"
-										// 	)
-										// );
 										if (
 											sizeElement.getAttribute(
 												"data-attr-value"
@@ -854,9 +795,7 @@ const requests = {
 				.then(function (response) {
 					return response.json();
 				})
-				.then(function (data) {
-					// console.log(data);
-				})
+				.then(function (data) {})
 				.then(() => {
 					if (error != true) {
 						console.log("Added to cart!");
@@ -903,7 +842,6 @@ const requests = {
 		redirect() {
 			console.log("Product added to cart, redirecting to checkout.");
 			chrome.storage.local.get(["settings"], function (result) {
-				// console.log(result.settings.features.preCart.generated);
 				if (result.settings.features.preCart.generated !== true) {
 					location.replace(
 						location
@@ -965,7 +903,7 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-						// console.log(data.customer.addresses[0].addressId);
+						console.log(data);
 						requests.checkout.shipping.addressID =
 							data.customer.addresses[0].addressId;
 						requests.checkout.shipping.getRates();
@@ -1047,9 +985,6 @@ const requests = {
 						.then((data) => {
 							requests.checkout.shipping.shipUUID =
 								data.order.shipping[0].UUID;
-							// console.log(
-							// 	`Shipping UUID: ${data.order.shipping[0].UUID}`
-							// );
 							requests.checkout.shipping.submit();
 							success = data.success;
 							fullResponse = data;
@@ -1087,7 +1022,6 @@ const requests = {
 							credentials: "include",
 						}
 					).then(function (response) {
-						// console.log(response);
 						if (response.status === 200) {
 							console.log(
 								"Shipping submited successfully."
@@ -1169,7 +1103,6 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-						// console.log(data);
 						redText = data.error;
 						if (redText != true) {
 							window.open(data.continueUrl);

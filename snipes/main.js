@@ -80,7 +80,7 @@ const safe = {
 			console.log("Currently in a product page.");
 			global.waitForDOM(safe.product.check404);
 		} else if (url.includes(paths.checkout.path)) {
-			safe.checkout.checkRegion();
+			safe.checkRegion();
 			global.waitForDOM(safe.saveItemInfo);
 			if (url.toString().includes(paths.checkout.shipping)) {
 				global.waitForDOM(safe.checkout.shipping);
@@ -109,8 +109,12 @@ const safe = {
 		}
 	},
 	saveItemInfo() {
+		let websiteMode = "";
+		chrome.storage.local.get(["websites"], function (result) {
+			websiteMode = result.websites.snipes.mode;
+		});
 		safe.checkRegion();
-		chrome.storage.local.get(["checkout"], function (result) {
+		chrome.storage.local.get(["checkout", "websites"], function (result) {
 			let checkoutFromStorage = result.checkout;
 			let currentProduct = {
 				brand: document
@@ -135,7 +139,8 @@ const safe = {
 					.getAttribute("data-src")
 					.trim(),
 				payPalURL: "",
-				mode: "SAFE",
+				mode: websiteMode,
+				profile: result.websites.snipes.profile.profileName,
 				webhookMessageSent: false,
 			};
 			console.log(currentProduct);
@@ -619,7 +624,7 @@ const requests = {
 			requests.checkRegion();
 			global.waitForDOM(safe.saveItemInfo);
 			// if (url.toString().includes(paths.checkout.shipping)) {
-			global.waitForDOM(requests.checkout.shipping.process);
+			requests.checkout.shipping.process();
 			// 	} else if (url.toString().includes(paths.checkout.payment)) {
 			// 		global.waitForDOM(checkout.payment);
 		}
@@ -708,7 +713,7 @@ const requests = {
 			});
 	},
 	saveItemInfo() {
-		chrome.storage.local.get(["checkout"], function (result) {
+		chrome.storage.local.get(["checkout", "websites"], function (result) {
 			let checkoutFromStorage = result.checkout;
 			let currentProduct = {
 				brand: document
@@ -734,6 +739,7 @@ const requests = {
 					.trim(),
 				payPalURL: "",
 				mode: "REQUESTS",
+				profile: result.websites.snipes.profile.profileName,
 				webhookMessageSent: false,
 			};
 			console.log(currentProduct);
@@ -1020,15 +1026,17 @@ const requests = {
 		},
 		shipping: {
 			submitted: false,
-			addressID: "",
-			shipUUID: document.getElementsByClassName("b-shipping-header")[0]
-				.dataset.shipmentUuid,
+			address: { shippingAddress: {}, ID: "" },
+			shipUUID: "",
 			process() {
-				requests.generateCSRF(requests.checkout.shipping.select);
+				requests.generateCSRF(
+					requests.checkout.shipping.getAddressID
+				);
 			},
-			select() {
+			getAddressID() {
+				requests.checkRegion();
 				fetch(
-					"https://www.snipes.es/on/demandware.store/Sites-snse-SOUTH-Site/es_ES/CheckoutShippingServices-SelectShippingMethod?format=ajax",
+					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SelectShippingMethod?format=ajax`,
 					{
 						headers: {
 							accept:
@@ -1045,191 +1053,59 @@ const requests = {
 						referrer:
 							"https://www.snipes.es/checkout?stage=shipping",
 						referrerPolicy: "strict-origin-when-cross-origin",
-						body: `methodID=${requests.regionData.delivery}&shipmentUUID=${this.shipUUID}`,
+						body: `methodID=${requests.regionData.delivery}&shipmentUUID`,
 						method: "POST",
 						mode: "cors",
 						credentials: "include",
 					}
-				).then((response) => {
-					console.log(response);
-				});
-			},
-			validate() {
-				chrome.storage.local.get(["websites"], function (result) {
-					fetch(
-						`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutAddressServices-Validate?format=ajax`,
-						{
-							headers: {
-								accept:
-									"application/json, text/javascript, */*; q=0.01",
-								"accept-language":
-									"en-GB,en-US;q=0.9,en;q=0.8",
-								"content-type":
-									"application/x-www-form-urlencoded; charset=UTF-8",
-								"sec-fetch-dest": "empty",
-								"sec-fetch-mode": "cors",
-								"sec-fetch-site": "same-origin",
-								"x-requested-with": "XMLHttpRequest",
-							},
-							referrer:
-								"https://www.snipes.es/checkout?stage=shipping",
-							referrerPolicy:
-								"strict-origin-when-cross-origin",
-							body: `street=${
-								result.websites.snipes.profile.street.replace(
-									" ",
-									"+"
-								) +
-								result.websites.snipes.profile.address2.replace(
-									" ",
-									"+"
-								)
-							}&houseNo=${
-								result.websites.snipes.profile
-									.streetNumber
-							}&postalCode=${
-								result.websites.snipes.profile.zipCode
-							}&city=${result.websites.snipes.profile.city.replace(
-								" ",
-								"+"
-							)}&country=${requests.regionData.snipesRegion
-								.replace(".", "")
-								.toUpperCase()}&csrf_token=${
-								requests.checkout.CSRFtoken
-							}`,
-							method: "POST",
-							mode: "cors",
-							credentials: "include",
-						}
-					);
-				});
-			},
-			getRates() {
-				console.log("Getting shipping rates...");
-				chrome.storage.local.get(["websites"], function (result) {
-					console.log(
-						"Selected profile loaded, recalculating shipping rates..."
-					);
-					let address2 = "";
-					if (
-						result.websites.snipes.profile.address2 != "" &&
-						result.websites.snipes.profile.address2 !=
-							undefined
-					) {
-						address2 = result.websites.snipes.profile.address2.replaceAll(
-							" ",
-							"+"
+				)
+					.then((response) => response.json())
+					.then((data) => {
+						console.log("Get address ID response:");
+						console.log(data);
+						requests.checkout.shipping.shipUUID =
+							data.order.shipping.UUID;
+						requests.checkout.shipping.address.shippingAddress =
+							data.order.shipping.shippingAddress;
+						requests.generateCSRF(
+							requests.checkout.shipping.submit
 						);
-					} else {
-						address2 = "";
-					}
-					fetch(
-						"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-ShippingRates?format=ajax",
-						{
-							headers: {
-								accept:
-									"application/json, text/javascript, */*; q=0.01",
-								"accept-language":
-									"en,ca;q=0.9,es;q=0.8",
-								"content-type":
-									"application/x-www-form-urlencoded; charset=UTF-8",
-								"sec-ch-ua":
-									'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
-								"sec-ch-ua-mobile": "?0",
-								"sec-fetch-dest": "empty",
-								"sec-fetch-mode": "cors",
-								"sec-fetch-site": "same-origin",
-								"x-requested-with": "XMLHttpRequest",
-							},
-							referrer:
-								"https://www.solebox.com/en_ES/checkout?stage=shipping#shipping",
-							referrerPolicy:
-								"strict-origin-when-cross-origin",
-							body: `selected=true&id=${
-								requests.checkout.shipping.addressID
-							}&addressType=${
-								result.websites.snipes.profile
-									.addressType
-							}&snipesStore=&hermesId&postOfficeNumber=&packstationNumber=&postNumber=&postalCode=${
-								result.websites.snipes.profile.zipCode
-							}&countryCode=${
-								result.websites.snipes.profile
-									.countryCode
-							}&carrierName=&suite=${
-								result.websites.snipes.profile
-									.streetNumber
-							}&street=${result.websites.snipes.profile.street.replaceAll(
-								" ",
-								"+"
-							)}&city=${result.websites.snipes.profile.city.replaceAll(
-								" ",
-								"+"
-							)}&address2=${address2}}&lastName=${
-								result.websites.snipes.profile.lastName
-							}&firstName=${
-								result.websites.snipes.profile.name
-							}&title=${
-								result.websites.snipes.profile.title
-							}&csrf_token=${requests.checkout.CSRFtoken}`,
-							method: "POST",
-							mode: "cors",
-							credentials: "include",
-						}
-					)
-						.then((response) => response.json())
-						.then((data) => {
-							requests.checkout.shipping.shipUUID =
-								data.order.shipping[0].UUID;
-							// console.log(
-							// 	`Shipping UUID: ${data.order.shipping[0].UUID}`
-							// );
-							requests.checkout.shipping.submit();
-							success = data.success;
-							fullResponse = data;
-						});
-				});
+					});
 			},
 			submit() {
 				console.log("Submitting shipping...");
-				chrome.storage.local.get(["websites"], function (result) {
-					fetch(
-						`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutShippingServices-SubmitShipping?region=europe&country=undefined&addressId=${requests.checkout.shipping.addressID}&format=ajax`,
-						{
-							headers: {
-								accept:
-									"application/json, text/javascript, */*; q=0.01",
-								"accept-language":
-									"en,ca;q=0.9,es;q=0.8",
-								"content-type":
-									"application/x-www-form-urlencoded; charset=UTF-8",
-								"sec-ch-ua":
-									'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
-								"sec-ch-ua-mobile": "?0",
-								"sec-fetch-dest": "empty",
-								"sec-fetch-mode": "cors",
-								"sec-fetch-site": "same-origin",
-								"x-requested-with": "XMLHttpRequest",
-							},
-							referrer:
-								"https://www.solebox.com/de_DE/checkout?stage=shipping",
-							referrerPolicy:
-								"strict-origin-when-cross-origin",
-							body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${result.websites.snipes.profile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${result.websites.snipes.profile.name}&dwfrm_shipping_shippingAddress_addressFields_lastName=${result.websites.snipes.profile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${result.websites.snipes.profile.zipCode}&dwfrm_shipping_shippingAddress_addressFields_city=${result.websites.snipes.profile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${result.websites.snipes.profile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${result.websites.snipes.profile.streetNumber}&dwfrm_shipping_shippingAddress_addressFields_address1=${result.websites.snipes.profile.street}&dwfrm_shipping_shippingAddress_addressFields_address2=${result.websites.snipes.profile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${result.websites.snipes.profile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${result.websites.snipes.profile.countryCode}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${result.websites.snipes.profile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${result.websites.snipes.profile.name}&dwfrm_billing_billingAddress_addressFields_lastName=${result.websites.snipes.profile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${result.websites.snipes.profile.zipCode}&dwfrm_billing_billingAddress_addressFields_city=${result.websites.snipes.profile.city}&dwfrm_billing_billingAddress_addressFields_street=${result.websites.snipes.profile.street}&dwfrm_billing_billingAddress_addressFields_suite=${result.websites.snipes.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address1=${result.websites.snipes.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address2=${result.websites.snipes.profile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${result.websites.snipes.profile.countryCode}&dwfrm_billing_billingAddress_addressFields_phone=${result.websites.snipes.profile.phone}&dwfrm_contact_email=${result.websites.snipes.profile.email}&dwfrm_contact_phone=${result.websites.snipes.profile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
-							method: "POST",
-							mode: "cors",
-							credentials: "include",
-						}
-					).then(function (response) {
-						// console.log(response);
-						if (response.status === 200) {
-							console.log(
-								"Shipping submited successfully."
-							);
-							requests.checkout.shipping.submitted = true;
-							requests.checkout.payment.submit();
-						}
+				fetch(
+					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SubmitShipping?format=ajax`,
+					{
+						headers: {
+							accept:
+								"application/json, text/javascript, */*; q=0.01",
+							"accept-language": "en,ca;q=0.9,es;q=0.8",
+							"content-type":
+								"application/x-www-form-urlencoded; charset=UTF-8",
+							"sec-ch-ua":
+								'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
+							"sec-ch-ua-mobile": "?0",
+							"sec-fetch-dest": "empty",
+							"sec-fetch-mode": "cors",
+							"sec-fetch-site": "same-origin",
+							"x-requested-with": "XMLHttpRequest",
+						},
+						referrer:
+							"https://www.snipes.es/checkout?stage=shipping",
+						referrerPolicy: "strict-origin-when-cross-origin",
+						body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&csrf_token=${requests.checkout.CSRFtoken}`,
+						method: "POST",
+						mode: "cors",
+						credentials: "include",
+					}
+				)
+					.then((response) => response.json())
+					.then((data) => {
+						console.log("Submit shipping response:");
+						console.log(data);
+						requests.checkout.payment.submit();
 					});
-				});
 			},
 		},
 		payment: {
@@ -1237,7 +1113,7 @@ const requests = {
 			submit() {
 				console.log("Submitting payment method...");
 				fetch(
-					"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutServices-SubmitPayment?format=ajax",
+					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutServices-SubmitPayment?format=ajax`,
 					{
 						headers: {
 							accept:
@@ -1254,28 +1130,32 @@ const requests = {
 							"x-requested-with": "XMLHttpRequest",
 						},
 						referrer:
-							"https://www.solebox.com/de_DE/checkout?stage=payment",
+							"https://www.snipes.es/checkout?stage=payment",
 						referrerPolicy: "strict-origin-when-cross-origin",
-						body: `dwfrm_billing_paymentMethod=Paypal&csrf_token=${requests.checkout.CSRFtoken}`,
+						body: `dwfrm_billing_paymentMethod=Paypal&dwfrm_giftCard_cardNumber=&dwfrm_giftCard_pin=&csrf_token=${requests.checkout.CSRFtoken}`,
 						method: "POST",
 						mode: "cors",
 						credentials: "include",
 					}
-				).then(function (response) {
-					console.log(response);
-					if (response.status === 200) {
+				)
+					.then((response) => response.json())
+					.then(function (data) {
+						console.log(data);
+						if (data.status > 400) {
+							requests.checkout.payment.submit();
+						}
 						console.log("Payment submited successfully.");
 						requests.checkout.payment.submitted = true;
 						requests.checkout.placeOrder.submit();
-					}
-				});
+					});
 			},
 		},
 		placeOrder: {
 			submitted: false,
 			submit() {
+				console.log("Placing order...");
 				fetch(
-					"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutServices-PlaceOrder?format=ajax",
+					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutServices-PlaceOrder?format=ajax`,
 					{
 						headers: {
 							accept:
@@ -1292,7 +1172,7 @@ const requests = {
 							"x-requested-with": "XMLHttpRequest",
 						},
 						referrer:
-							"https://www.solebox.com/de_DE/checkout?stage=placeOrder",
+							"https://www.snipes.es/checkout?stage=placeOrder",
 						referrerPolicy: "strict-origin-when-cross-origin",
 						body: null,
 						method: "POST",
@@ -1302,21 +1182,24 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-						// console.log(data);
-						redText = data.error;
-						if (redText != true) {
+						console.log(data);
+						if (data.continueUrl) {
 							window.open(data.continueUrl);
-							console.log(
-								"Successful checkout! Dont forget to pay your order"
-							);
-						} else {
-							console.log(
-								"Red Text Error - Please solve the captcha in the popup window"
-							);
-							window.open(
-								`https://www.solebox.com/checkout?stage=placeOrder#placeOrder`
-							);
 						}
+						// redText = data.error;
+						// if (redText != true) {
+						//     window.open(data.continueUrl);
+						//     console.log(
+						//         "Successful checkout! Dont forget to pay your order"
+						//     );
+						// } else {
+						//     console.log(
+						//         "Red Text Error - Please solve the captcha in the popup window"
+						//     );
+						//     window.open(
+						//         `https://www.solebox.com/checkout?stage=placeOrder#placeOrder`
+						//     );
+						// }
 					});
 			},
 		},
