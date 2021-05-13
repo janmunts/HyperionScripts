@@ -19,7 +19,7 @@ function loadProfileList() {
 function clearProfileList() {
 	var select = document.getElementById("profile-select");
 	for (i = select.options.length - 1; i >= 0; i--) {
-		select.options.length.options[i] = null;
+		select.remove(i);
 	}
 	loadProfileList();
 }
@@ -84,19 +84,16 @@ function loadProfileData(profile) {
 document.getElementById("save-button").addEventListener("click", function () {
 	console.log("SAVE BUTTON CLICKED");
 	saveAsNewProfile();
-	clearProfileList();
 });
 
 document.getElementById("update-button").addEventListener("click", function () {
 	console.log("UPDATE BUTTON CLICKED");
 	updateProfile();
-	clearProfileList();
 });
 
 document.getElementById("delete-button").addEventListener("click", function () {
 	console.log("DELETE BUTTON CLICKED");
 	deleteProfile();
-	clearProfileList();
 });
 
 document
@@ -180,6 +177,7 @@ function saveAsNewProfile() {
 		chrome.storage.local.set({ profiles: newProfiles }, function () {
 			console.log("successfully saved as new profile");
 			console.log(newProfile);
+			clearProfileList();
 		});
 	});
 }
@@ -206,6 +204,7 @@ function deleteProfile() {
 			});
 		}
 	});
+	clearProfileList();
 }
 
 function formatAddress() {

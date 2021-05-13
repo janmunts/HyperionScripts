@@ -48,12 +48,7 @@ function loadProfileList() {
 				}
 			});
 		}
-
 		console.log(result.profiles);
-		// if (result.websites.solebox.profile) {
-		// 	document.getElementById(elementID).value =
-		// 		result.websites.solebox.profile.profileName;
-		// }
 	});
 }
 
