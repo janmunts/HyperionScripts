@@ -31,13 +31,13 @@ class publicWebhook {
                     inline: true,
                 },
                 {
-                    name: "Size :straight_ruler:",
-                    value: product.size,
+                    name: "Model :label:",
+                    value: product.model,
                     inline: true,
                 },
                 {
-                    name: "Model :label:",
-                    value: product.model,
+                    name: "Size :straight_ruler:",
+                    value: product.size,
                     inline: true,
                 },
                 {
@@ -86,13 +86,13 @@ class privateWebhook {
                     inline: true,
                 },
                 {
-                    name: "Size :straight_ruler:",
-                    value: product.size,
+                    name: "Model :label:",
+                    value: product.model,
                     inline: true,
                 },
                 {
-                    name: "Model :label:",
-                    value: product.model,
+                    name: "Size :straight_ruler:",
+                    value: product.size,
                     inline: true,
                 },
                 {
@@ -113,11 +113,6 @@ class privateWebhook {
                 {
                     name: "User :bust_in_silhouette:",
                     value: `||${product.user}||`,
-                    inline: true,
-                },
-                {
-                    name: "User :floppy_disk:",
-                    value: `||${product.profile}||`,
                     inline: true,
                 },
             ]),

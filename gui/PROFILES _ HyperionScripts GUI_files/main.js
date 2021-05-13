@@ -17,16 +17,13 @@ function loadProfileList() {
 }
 
 function clearProfileList() {
-	var select = document.getElementById("profile-select");
-	for (i = select.options.length - 1; i >= 0; i--) {
-		select.remove(i);
-	}
-	loadProfileList();
+	document.addEventListener("DOMContentLoaded", function () {
+		while (document.getElementById("profile-select").options.length > 0) {
+			document.getElementById("profile-select").remove(0);
+		}
+		loadData();
+	});
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-	loadData();
-});
 
 function loadData() {
 	loadProfileList();
@@ -34,8 +31,8 @@ function loadData() {
 		if (result.profiles.selected) {
 			console.log(result.profiles.selected.profileName);
 			loadProfileData(result.profiles.selected);
-			const selectOptions = document.getElementById("profile-select")
-				.options;
+			const selectOptions =
+				document.getElementById("profile-select").options;
 			for (const property in selectOptions) {
 				if (
 					selectOptions[property].innerHTML ===
@@ -89,11 +86,13 @@ document.getElementById("save-button").addEventListener("click", function () {
 document.getElementById("update-button").addEventListener("click", function () {
 	console.log("UPDATE BUTTON CLICKED");
 	updateProfile();
+	clearProfileList();
 });
 
 document.getElementById("delete-button").addEventListener("click", function () {
 	console.log("DELETE BUTTON CLICKED");
 	deleteProfile();
+	clearProfileList();
 });
 
 document
@@ -153,8 +152,7 @@ function saveAsNewProfile() {
 				if (profile.profileName === newProfile.profileName) {
 					profileNameAvailable = false;
 					newProfile.profileName = newProfile.profileName.concat(
-						" ",
-						modifier
+						` (${modifier})`
 					);
 					modifier++;
 				}
@@ -177,7 +175,7 @@ function saveAsNewProfile() {
 		chrome.storage.local.set({ profiles: newProfiles }, function () {
 			console.log("successfully saved as new profile");
 			console.log(newProfile);
-			clearProfileList();
+			loadData();
 		});
 	});
 }
@@ -189,9 +187,8 @@ function deleteProfile() {
 		if (result.profiles.list) {
 			result.profiles.list.forEach((element) => {
 				if (element.profileName === profileName) {
-					var elementIndex = result.profiles.list.indexOf(
-						element
-					);
+					var elementIndex =
+						result.profiles.list.indexOf(element);
 					if (elementIndex > 1) {
 						oldProfiles.list.splice(elementIndex, 1);
 						chrome.storage.local.set({
@@ -204,7 +201,6 @@ function deleteProfile() {
 			});
 		}
 	});
-	clearProfileList();
 }
 
 function formatAddress() {
@@ -264,3 +260,5 @@ function loadAddress(profile) {
 document.getElementById("address").addEventListener("change", formatAddress);
 
 // Maria Aurelia Capmany, 31, 1o 2a, 08250, Sant Joan de Vilatorrada, Spain
+
+loadData();

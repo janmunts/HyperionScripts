@@ -15,27 +15,6 @@ function loadProfileList() {
 					var option = document.createElement("option");
 					option.text = profile.profileName;
 					element.add(option);
-
-					// if (
-					// 	profile.profileName ===
-					// 	result.websites.solebox.profile.profileName
-					// ) {
-					// 	document.getElementById(
-					// 		"sbx-profile-select"
-					// 	).value = profile.profileName;
-					// 	option.selected = true;
-					// 	console.log("asjdfhkasjdfh 1");
-					// }
-					// if (
-					// 	profile.profileName ===
-					// 	result.websites.snipes.profile.profileName
-					// ) {
-					// 	document.getElementById(
-					// 		"snipes-profile-select"
-					// 	).value = profile.profileName;
-					// 	option.selected = true;
-					// 	console.log("asjdfhkasjdfh 2");
-					// }
 				});
 				if (result.websites.solebox.profile.profileName) {
 					document.getElementById("sbx-profile-select").value =
@@ -48,6 +27,7 @@ function loadProfileList() {
 				}
 			});
 		}
+
 		console.log(result.profiles);
 	});
 }
@@ -78,8 +58,9 @@ function loadData() {
 
 function saveData() {
 	var sbxProfileName = document.getElementById("sbx-profile-select").value,
-		snipesProfileName = document.getElementById("snipes-profile-select")
-			.value;
+		snipesProfileName = document.getElementById(
+			"snipes-profile-select"
+		).value;
 
 	var sbxProfile = {},
 		snipesProfile = {};
@@ -116,6 +97,21 @@ function saveData() {
 				},
 			},
 			function () {
+				console.log({
+					solebox: {
+						profile: sbxProfile,
+						mode: document.getElementById("sbx-mode-select")
+							.value,
+						sizes: formatSizes("sbx-size-select"),
+					},
+					snipes: {
+						profile: snipesProfile,
+						mode: document.getElementById(
+							"snipes-mode-select"
+						).value,
+						sizes: formatSizes("snipes-size-select"),
+					},
+				});
 				console.log("DATA SAVED!");
 			}
 		);
