@@ -7,7 +7,6 @@ function loadProfileList() {
 				option.text = element.profileName;
 				x.add(option);
 			});
-			console.log(result.profiles);
 			if (result.profiles.selected) {
 				if (result.profiles.selected.profileName) {
 					document.getElementById("profile-select").value =
@@ -31,7 +30,6 @@ function loadData() {
 	loadProfileList();
 	chrome.storage.local.get(["profiles"], function (result) {
 		if (result.profiles.selected) {
-			console.log(result.profiles.selected.profileName);
 			loadProfileData(result.profiles.selected);
 			const selectOptions =
 				document.getElementById("profile-select").options;
@@ -40,10 +38,7 @@ function loadData() {
 					selectOptions[property].innerHTML ===
 					result.profiles.selected.profileName
 				) {
-					console.log(
-						"clicking correspoding item: " +
-							result.profiles.selected.profileName
-					);
+
 					const selectOptions = (document.getElementById(
 						"profile-select"
 					).selectedIndex = property);
@@ -61,8 +56,6 @@ function loadProfileData(profile) {
 	document.getElementById("email").value = profile.email;
 	document.getElementById("password").value = profile.password;
 	document.getElementById("phone").value = profile.phone;
-	console.log("loading address...");
-	console.log(profile);
 	if (profile.address) {
 		document.getElementById("address").value = profile.address;
 	}
@@ -158,7 +151,6 @@ function saveAsNewProfile() {
 }
 
 function updateProfile() {
-	console.log("Saving profile...");
 	if (
 		document.getElementById("profile-name").value !== "" &&
 		document.getElementById("profile-name").value !== undefined &&
@@ -178,7 +170,6 @@ function updateProfile() {
 				}
 			});
 			if (profileNameAvailable) {
-				console.log("Profile name available!");
 				let updatedProfile = {
 					profileName:
 						document.getElementById("profile-name").value,
@@ -209,20 +200,12 @@ function updateProfile() {
 				chrome.storage.local.get(["profiles"], function (result) {
 					let newProfiles = result.profiles;
 					newProfiles.list.indexOf(result.profiles.selected);
-					console.log(result.profiles.list);
-					console.log(result.profiles.selected);
-					console.log(
-						"Index: ",
-						newProfiles.list.indexOf(result.profiles.selected)
-					);
 					newProfiles.list.forEach(function (profile) {
 						if (
 							profile.profileName ===
 							result.profiles.selected.profileName
 						) {
-							console.log(
-								newProfiles.list.indexOf(profile)
-							);
+
 							newProfiles.list.splice(
 								newProfiles.list.indexOf(profile),
 								1,
@@ -248,11 +231,6 @@ function updateProfile() {
 }
 
 function deleteProfile() {
-	console.log(
-		`Deleting profile... (${
-			document.getElementById("profile-name").value
-		})`
-	);
 	const profileName = document.getElementById("profile-name").value;
 	chrome.storage.local.get(["profiles"], function (result) {
 		let newProfiles = result.profiles;
@@ -279,8 +257,6 @@ function formatAddress() {
 	for (var i = 0; i < inputAddress.length; i++) {
 		if (inputAddress[i] === ",") indices.push(i);
 	}
-
-	console.log(indices);
 
 	i = indices.length - 4;
 
@@ -314,8 +290,6 @@ function formatAddress() {
 			.replace(",", "")
 			.replace(" ", "");
 	}
-
-	console.log(addressInfo);
 	return addressInfo;
 }
 
@@ -331,18 +305,15 @@ document.getElementById("address").addEventListener("change", formatAddress);
 
 // button listeners
 document.getElementById("save-button").addEventListener("click", function () {
-	console.log("SAVE BUTTON CLICKED");
 	saveAsNewProfile();
 });
 
 document.getElementById("update-button").addEventListener("click", function () {
-	console.log("UPDATE BUTTON CLICKED");
 	updateProfile();
 	clearProfileList();
 });
 
 document.getElementById("delete-button").addEventListener("click", function () {
-	console.log("DELETE BUTTON CLICKED");
 	deleteProfile();
 	// clearProfileList();
 });
@@ -350,7 +321,6 @@ document.getElementById("delete-button").addEventListener("click", function () {
 document
 	.getElementById("profile-select")
 	.addEventListener("change", function () {
-		console.log("Change detected!");
 		chrome.storage.local.get(["profiles"], function (result) {
 			let oldProfiles = result.profiles;
 			oldProfiles.selected =
