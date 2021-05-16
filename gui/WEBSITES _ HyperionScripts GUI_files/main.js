@@ -5,13 +5,8 @@ function loadProfileList() {
 				document.getElementById("sbx-profile-select"),
 				document.getElementById("snipes-profile-select"),
 			];
-
-			console.log(profileElements);
-
 			result.profiles.list.forEach((profile) => {
-				console.log(profile.profileName);
 				profileElements.forEach(function (element) {
-					console.log(element);
 					var option = document.createElement("option");
 					option.text = profile.profileName;
 					element.add(option);
@@ -27,20 +22,16 @@ function loadProfileList() {
 				}
 			});
 		}
-
-		console.log(result.profiles);
 	});
 }
 
 function loadData() {
 	loadProfileList();
-	selectProfiles();
 	chrome.storage.local.get(["websites"], function (result) {
-		console.log(result.websites);
 		document.getElementById("sbx-profile-select").value =
-			result.websites.solebox.profile;
+			result.websites.solebox.profile.profileName;
 		document.getElementById("snipes-profile-select").value =
-			result.websites.snipes.profile;
+			result.websites.snipes.profile.profileName;
 
 		document.getElementById("sbx-mode-select").value =
 			result.websites.solebox.mode;
@@ -68,11 +59,9 @@ function saveData() {
 		if (result.profiles.list) {
 			result.profiles.list.forEach((element) => {
 				if (element.profileName === sbxProfileName) {
-					console.log(element);
 					sbxProfile = element;
 				}
 				if (element.profileName === snipesProfileName) {
-					console.log(element);
 					snipesProfile = element;
 				}
 			});
@@ -96,24 +85,7 @@ function saveData() {
 					},
 				},
 			},
-			function () {
-				console.log({
-					solebox: {
-						profile: sbxProfile,
-						mode: document.getElementById("sbx-mode-select")
-							.value,
-						sizes: formatSizes("sbx-size-select"),
-					},
-					snipes: {
-						profile: snipesProfile,
-						mode: document.getElementById(
-							"snipes-mode-select"
-						).value,
-						sizes: formatSizes("snipes-size-select"),
-					},
-				});
-				console.log("DATA SAVED!");
-			}
+			function () {}
 		);
 	});
 }
@@ -154,12 +126,10 @@ document
 	.addEventListener("change", saveData);
 
 function loadSizes(sizes) {
-	console.log(`Loading sizes: ${sizes}`);
 	let sizesString = "";
 	sizes.forEach(function (size) {
 		sizesString = sizesString + size + ", ";
 	});
-	console.log(sizesString.slice(0, -1));
 	return sizesString.slice(0, -2);
 }
 

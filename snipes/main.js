@@ -1,4 +1,3 @@
-// check user authentication, extension activity and website mode.
 chrome.storage.local.get(
 	["initialized", "active", "account", "websites"],
 	function (result) {
@@ -6,28 +5,31 @@ chrome.storage.local.get(
 			if (result.account.discordAuth === true) {
 				if (result.active === true) {
 					console.log(
-						"Extension active, checking selected mode."
+						`%cHyperionScripts injected! Hi %c${result.account.discordUsername}!`,
+						"color: rgb(206, 182, 102); font-size: 20px",
+						"color: rgb(206, 182, 102); font-size: 20px; font-weight: bold"
 					);
-					console.log(`Hi ${result.account.discordUsername}.`);
 					if (result.websites.snipes.mode === "SAFE") {
+						console.log("Safe code successfully injected.");
 						safe.urlCheck();
-						console.log("Injecting safe code...");
 					} else if (
 						result.websites.snipes.mode === "REQUESTS"
 					) {
+						console.log(
+							"Requests code successfully injected."
+						);
 						requests.urlCheck();
-						console.log("Injecting requests code...");
 					}
 				} else {
-					console.log("Safe code not injected.");
+					console.log("Extension not ON.");
 				}
 			} else {
-				console.log(
+				console.error(
 					"Could not verify your account, go to settings to log in."
 				);
 			}
 		} else {
-			console.log(
+			console.error(
 				"Could not verify your account, go to settings to log in."
 			);
 		}
@@ -202,9 +204,8 @@ const safe = {
 			},
 			attribute: "data-attr-value",
 			get() {
-				const sizeQuerySelectorValues = document.querySelectorAll(
-					"[data-attr-value]"
-				);
+				const sizeQuerySelectorValues =
+					document.querySelectorAll("[data-attr-value]");
 
 				if (
 					sizeQuerySelectorValues.length === 1 &&
@@ -318,7 +319,8 @@ const safe = {
 											) === size.toString()
 										) {
 											sizeElement.click();
-											safe.product.sizes.selectedNumber = size;
+											safe.product.sizes.selectedNumber =
+												size;
 											success = true;
 											return;
 										}
@@ -373,9 +375,8 @@ const safe = {
 	},
 	cart: {
 		deleteItem() {
-			const deleteItemButtonElement = document.getElementsByClassName(
-				"i-trash"
-			)[0];
+			const deleteItemButtonElement =
+				document.getElementsByClassName("i-trash")[0];
 			const deleteConfirmationButton = document.getElementsByClassName(
 				"f-cart-remove-btn js-remove-confirmation-action f-button f-button--primary"
 			)[0];
@@ -622,7 +623,7 @@ const requests = {
 			global.waitForDOM(requests.product.check404);
 		} else if (url.includes(paths.checkout.path)) {
 			requests.checkRegion();
-			global.waitForDOM(safe.saveItemInfo);
+			// global.waitForDOM(safe.saveItemInfo);
 			// if (url.toString().includes(paths.checkout.shipping)) {
 			requests.checkout.shipping.process();
 			// 	} else if (url.toString().includes(paths.checkout.payment)) {
@@ -681,8 +682,7 @@ const requests = {
 			`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CSRF-Generate?format=ajax`,
 			{
 				headers: {
-					accept:
-						"application/json, text/javascript, */*; q=0.01",
+					accept: "application/json, text/javascript, */*; q=0.01",
 					"accept-language": "en,ca;q=0.9,es;q=0.8",
 					"content-type":
 						"application/x-www-form-urlencoded; charset=UTF-8",
@@ -712,34 +712,27 @@ const requests = {
 				callback();
 			});
 	},
-	saveItemInfo() {
+	saveItemInfo(itemInfo, itemImage, itemURL) {
+		console.log("Saving item info...");
+		console.log(itemInfo, itemImage);
+		let user = "";
+		chrome.storage.local.get(["websites"], function (result) {
+			user = result.websites.solebox.profile.email;
+		});
 		chrome.storage.local.get(["checkout", "websites"], function (result) {
 			let checkoutFromStorage = result.checkout;
 			let currentProduct = {
-				brand: document
-					.getElementsByClassName("t-product-brand-name")[0]
-					.innerHTML.trim(),
-				size: document
-					.getElementsByClassName(
-						`b-item-attribute b-item-attribute--${safe.checkout.sizeAttrClassname}`
-					)[0]
-					.getElementsByClassName("t-checkout-attr-value")[0]
-					.innerHTML,
-				model: document
-					.getElementsByClassName("t-product-main-name")[0]
-					.innerHTML.trim(),
+				brand: itemInfo.brand,
+				size: itemInfo.variant,
+				model: itemInfo.name,
 				website: location.hostname.replace("www.", ""),
-				price: document
-					.getElementsByClassName("b-product-tile-price-item")[0]
-					.innerHTML.trim(),
-				user: document.getElementById("dwfrm_contact_email").value,
-				imageURL: document
-					.getElementsByClassName("b-dynamic_image_content")[0]
-					.getAttribute("data-src")
-					.trim(),
+				price: itemInfo.price.replace(".", ",").concat(" €"),
+				user: user,
+				imageURL: itemImage,
+				itemPageURL: itemURL,
 				payPalURL: "",
 				mode: "REQUESTS",
-				profile: result.websites.snipes.profile.profileName,
+				profile: result.websites.solebox.profile.profileName,
 				webhookMessageSent: false,
 			};
 			console.log(currentProduct);
@@ -753,8 +746,7 @@ const requests = {
 			"https://www.solebox.com/de_DE/authentication?rurl=1&format=ajax",
 			{
 				headers: {
-					accept:
-						"application/json, text/javascript, */*; q=0.01",
+					accept: "application/json, text/javascript, */*; q=0.01",
 					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
 					"content-type":
 						"application/x-www-form-urlencoded; charset=UTF-8",
@@ -805,9 +797,8 @@ const requests = {
 			},
 			attribute: "data-attr-value",
 			get() {
-				const sizeQuerySelectorValues = document.querySelectorAll(
-					"[data-attr-value]"
-				);
+				const sizeQuerySelectorValues =
+					document.querySelectorAll("[data-attr-value]");
 				sizeQuerySelectorValues.forEach((size) => {
 					if (size.className.includes("b-size-value")) {
 						safe.product.sizes.list.push(size);
@@ -909,7 +900,8 @@ const requests = {
 											) === size.toString()
 										) {
 											sizeElement.click();
-											safe.product.sizes.selectedNumber = size;
+											safe.product.sizes.selectedNumber =
+												size;
 											success = true;
 											return;
 										}
@@ -931,8 +923,7 @@ const requests = {
 		addToCart(pid) {
 			fetch("https://www.solebox.com/de_DE/add-product?format=ajax", {
 				headers: {
-					accept:
-						"application/json, text/javascript, */*; q=0.01",
+					accept: "application/json, text/javascript, */*; q=0.01",
 					"accept-language": "en,ca;q=0.9,es;q=0.8",
 					"content-type":
 						"application/x-www-form-urlencoded; charset=UTF-8",
@@ -975,8 +966,7 @@ const requests = {
 				`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/Cart-RemoveProductLineItem?format=ajax&pid=0190033300000010&uuid=${uuid}`,
 				{
 					headers: {
-						accept:
-							"application/json, text/javascript, */*; q=0.01",
+						accept: "application/json, text/javascript, */*; q=0.01",
 						"accept-language": "en,ca;q=0.9,es;q=0.8",
 						"content-type": "application/json",
 						"sec-ch-ua":
@@ -1039,8 +1029,7 @@ const requests = {
 					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SelectShippingMethod?format=ajax`,
 					{
 						headers: {
-							accept:
-								"application/json, text/javascript, */*; q=0.01",
+							accept: "application/json, text/javascript, */*; q=0.01",
 							"accept-language":
 								"en-GB,en-US;q=0.9,en;q=0.8",
 							"content-type":
@@ -1070,6 +1059,11 @@ const requests = {
 						requests.generateCSRF(
 							requests.checkout.shipping.submit
 						);
+						requests.saveItemInfo(
+							data.order.items.items[0].gtm,
+							data.order.items.items[0].images[0].pdp.srcD,
+							data.order.items.items[0].urls.pdp
+						);
 					});
 			},
 			submit() {
@@ -1078,8 +1072,7 @@ const requests = {
 					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SubmitShipping?format=ajax`,
 					{
 						headers: {
-							accept:
-								"application/json, text/javascript, */*; q=0.01",
+							accept: "application/json, text/javascript, */*; q=0.01",
 							"accept-language": "en,ca;q=0.9,es;q=0.8",
 							"content-type":
 								"application/x-www-form-urlencoded; charset=UTF-8",
@@ -1116,8 +1109,7 @@ const requests = {
 					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutServices-SubmitPayment?format=ajax`,
 					{
 						headers: {
-							accept:
-								"application/json, text/javascript, */*; q=0.01",
+							accept: "application/json, text/javascript, */*; q=0.01",
 							"accept-language": "en,ca;q=0.9,es;q=0.8",
 							"content-type":
 								"application/x-www-form-urlencoded; charset=UTF-8",
@@ -1158,8 +1150,7 @@ const requests = {
 					`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutServices-PlaceOrder?format=ajax`,
 					{
 						headers: {
-							accept:
-								"application/json, text/javascript, */*; q=0.01",
+							accept: "application/json, text/javascript, */*; q=0.01",
 							"accept-language": "en,ca;q=0.9,es;q=0.8",
 							"content-type":
 								"application/x-www-form-urlencoded; charset=UTF-8",
