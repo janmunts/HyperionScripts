@@ -169,6 +169,7 @@ const safe = {
 					)[0].disabled === false
 				) {
 					safe.product.addToCart("safe");
+					console.log("Adding to cart safe");
 				}
 
 				sizeQuerySelectorValues.forEach((size) => {
@@ -189,6 +190,7 @@ const safe = {
 				});
 				if (this.anySelected === true) {
 					safe.product.addToCart("safe");
+					console.log("Adding to cart safe");
 				} else {
 					this.checkAvailability();
 				}
@@ -231,6 +233,7 @@ const safe = {
 						("No preferred sizes detected, trying to select a random one.");
 						safe.product.sizes.available.list[0].click();
 						safe.product.addToCart("safe");
+						console.log("Adding to cart safe");
 					} else {
 						let success = false;
 						sizes.forEach((size) => {
@@ -260,14 +263,17 @@ const safe = {
 						if (success === false) {
 							safe.product.sizes.available.list[0].click();
 							safe.product.addToCart("safe");
+							console.log("Adding to cart safe");
 						} else {
 							safe.product.addToCart("safe");
+							console.log("Adding to cart safe");
 						}
 					}
 				}
 			},
 		},
 		addToCart(mode) {
+			console.log("Adding to cart: " + mode);
 			chrome.runtime.onMessage.addListener(
 				(message, sender, sendResponse) => {
 					if (
@@ -279,16 +285,16 @@ const safe = {
 						clearInterval(ATCButtonClick);
 
 						if (mode === "safe") {
+							console.log("Redirecting...");
 							safe.checkout.redirect();
 						} else if (mode === "requests") {
-							requests.checkout.shipping.process();
+							console.log("Executing checkout process...");
+							requests.checkout.redirect();
+							// requests.checkout.shipping.process();
 						}
 					}
 				}
 			);
-			// const ATCButtonElement = document.getElementsByClassName(
-			// 	"f-pdp-button f-pdp-button--active js-btn-add-to-cart"
-			// )[0];
 			const ATCButtonClick = setInterval(function () {
 				document
 					.getElementsByClassName(
@@ -537,36 +543,17 @@ const requests = {
 	},
 	login() {
 		const CSRFtoken = document.querySelector("[name='csrf_token']").value;
-		fetch(
-			"https://www.solebox.com/de_DE/authentication?rurl=1&format=ajax",
-			{
-				headers: {
-					accept: "application/json, text/javascript, */*; q=0.01",
-					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-					"content-type":
-						"application/x-www-form-urlencoded; charset=UTF-8",
-					"sec-fetch-dest": "empty",
-					"sec-fetch-mode": "cors",
-					"sec-fetch-site": "same-origin",
-					"x-requested-with": "XMLHttpRequest",
-				},
-				referrer: "https://www.solebox.com/de_DE/login",
-				referrerPolicy: "strict-origin-when-cross-origin",
-				body: `dbcfb2dbe33eb14ecce6771cf1e21ceb=4af91e1b5234aa5c7231ba0b08e0e084&dwfrm_profile_customer_email=janmuntsiglesias%40gmail.com&dwfrm_profile_login_password=Xirimoia95&csrf_token=${CSRFtoken}`,
-				method: "POST",
-				mode: "cors",
-				credentials: "include",
-			}
-		).then(function (response) {});
 	},
 	product: {
 		check404() {
 			if (
-				!document.getElementsByClassName(
-					"t-error-page-title-exp"
-				)[0]
+				document.getElementsByClassName("t-error-page-title-exp")[0]
 			) {
-				requests.product.sizes.get();
+				requests.product.addToCart(404);
+				console.log("404 detected.");
+			} else {
+				requests.product.addToCart();
+				console.log("404 not detected.");
 			}
 		},
 		sizes: {
@@ -578,13 +565,7 @@ const requests = {
 				numbers: [],
 			},
 			soldOut: [],
-			classValues: {
-				orderable: "b-swatch-value--orderable",
-				soldOut: "b-swatch-value--sold-out",
-				selected: "b-swatch-value--selected",
-			},
-			attribute: "data-attr-value",
-			get() {
+			select() {
 				const sizeQuerySelectorValues =
 					document.querySelectorAll("[data-attr-value]");
 				sizeQuerySelectorValues.forEach((size) => {
@@ -592,12 +573,12 @@ const requests = {
 						safe.product.sizes.list.push(size);
 					}
 				});
-				this.checkSelected();
-			},
-			checkSelected() {
+
 				this.list.forEach((size) => {
 					if (
-						size.className.includes(this.classValues.selected)
+						size.className.includes(
+							"b-swatch-value--selected"
+						)
 					) {
 						this.anySelected = true;
 						return;
@@ -606,115 +587,117 @@ const requests = {
 				if (this.anySelected === true) {
 					safe.product.addToCart("requests");
 				} else {
-					this.checkAvailability();
-				}
-			},
-			checkAvailability() {
-				safe.product.sizes.list.forEach((size) => {
-					if (
-						size.className.includes(
-							safe.product.sizes.classValues.orderable
-						) &&
-						!size.className.includes(
-							safe.product.sizes.classValues.soldOut
-						)
-					) {
-						safe.product.sizes.available.list.push(size);
-					} else {
-						safe.product.sizes.soldOut.push(size);
-					}
-				});
-				this.getNumber();
-			},
-			getNumber() {
-				safe.product.sizes.available.list.forEach((size) => {
-					safe.product.sizes.available.numbers.push(
-						size.getAttribute(safe.product.sizes.attribute)
-					);
-				});
-				this.loadSaved();
-			},
-			loadSaved() {
-				chrome.storage.local.get(["websites"], function (result) {
-					safe.product.sizes.select(
-						result.websites.solebox.sizes
-					);
-				});
-			},
-			select(sizes) {
-				if (safe.product.sizes.available.list.length > 0) {
-					if (!sizes.length > 0) {
-						("No preferred sizes detected, trying to select a random one.");
-						safe.product.sizes.available.list[0].click();
-					} else {
-						let success = false;
-						sizes.forEach((size) => {
-							if (
-								safe.product.sizes.available.numbers.includes(
-									size.toString()
-								) &&
-								success === false
-							) {
-								safe.product.sizes.available.list.forEach(
-									(sizeElement) => {
-										if (
-											sizeElement.getAttribute(
-												"data-attr-value"
-											) === size.toString()
-										) {
-											sizeElement.click();
-											safe.product.sizes.selectedNumber =
-												size;
-											success = true;
-											return;
-										}
-									}
-								);
-							}
-						});
-						if (success === false) {
-							safe.product.sizes.available.list[0].click();
+					safe.product.sizes.list.forEach((size) => {
+						if (
+							size.className.includes(
+								"b-swatch-value--orderable"
+							) &&
+							!size.className.includes(
+								"b-swatch-value--sold-out"
+							)
+						) {
+							safe.product.sizes.available.list.push(size);
+						} else {
+							safe.product.sizes.soldOut.push(size);
 						}
-						safe.product.addToCart("requests");
-					}
+					});
+					safe.product.sizes.available.list.forEach((size) => {
+						safe.product.sizes.available.numbers.push(
+							size.getAttribute("data-attr-value")
+						);
+					});
+					chrome.storage.local.get(
+						["websites"],
+						function (result) {
+							const sizes = result.websites.solebox.sizes;
+							if (
+								safe.product.sizes.available.list
+									.length > 0
+							) {
+								if (!sizes.length > 0) {
+									("No preferred sizes detected, trying to select a random one.");
+									safe.product.sizes.available.list[0].click();
+									safe.product.addToCart("requests");
+								} else {
+									let success = false;
+									sizes.forEach((size) => {
+										if (
+											safe.product.sizes.available.numbers.includes(
+												size.toString()
+											) &&
+											success === false
+										) {
+											safe.product.sizes.available.list.forEach(
+												(sizeElement) => {
+													if (
+														sizeElement.getAttribute(
+															"data-attr-value"
+														) ===
+														size.toString()
+													) {
+														sizeElement.click();
+														safe.product.sizes.selectedNumber =
+															size;
+														success = true;
+														return;
+													}
+												}
+											);
+										}
+									});
+									if (success === false) {
+										safe.product.sizes.available.list[0].click();
+									}
+									safe.product.addToCart("requests");
+								}
+							}
+						}
+					);
 				}
 			},
 		},
-		addToCart(pid) {
-			fetch("https://www.solebox.com/de_DE/add-product?format=ajax", {
-				headers: {
-					accept: "application/json, text/javascript, */*; q=0.01",
-					"accept-language": "en,ca;q=0.9,es;q=0.8",
-					"content-type":
-						"application/x-www-form-urlencoded; charset=UTF-8",
-					"sec-ch-ua":
-						'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
-					"sec-ch-ua-mobile": "?0",
-					"sec-fetch-dest": "empty",
-					"sec-fetch-mode": "cors",
-					"sec-fetch-site": "same-origin",
-					"x-requested-with": "XMLHttpRequest",
-				},
-				referrer: location.toString(),
-				referrerPolicy: "strict-origin-when-cross-origin",
-				body: `${pid}&quantity=1`,
-				method: "POST",
-				mode: "cors",
-				credentials: "include",
-			})
-				.then(function (response) {
-					return response.json();
-				})
-				.then(function (data) {})
-				.then(() => {
-					if (error != true) {
-						solebox.startCheckout();
-					} else {
-						console.log(
-							"Error while adding to cart: " + errorMessage
-						);
+		addToCart(page) {
+			let pid = location
+				.toString()
+				.slice(
+					location.toString().lastIndexOf("-") + 1,
+					location.toString().lastIndexOf(".")
+				);
+
+			if (pid.length > 8) {
+				fetch(
+					"https://www.solebox.com/de_DE/add-product?format=ajax",
+					{
+						headers: {
+							accept: "application/json, text/javascript, */*; q=0.01",
+							"accept-language": "en,ca;q=0.9,es;q=0.8",
+							"content-type":
+								"application/x-www-form-urlencoded; charset=UTF-8",
+							"sec-ch-ua":
+								'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
+							"sec-ch-ua-mobile": "?0",
+							"sec-fetch-dest": "empty",
+							"sec-fetch-mode": "cors",
+							"sec-fetch-site": "same-origin",
+							"x-requested-with": "XMLHttpRequest",
+						},
+						referrer: location.toString(),
+						referrerPolicy: "strict-origin-when-cross-origin",
+						body: `pid=${pid}&quantity=1`,
+						method: "POST",
+						mode: "cors",
+						credentials: "include",
 					}
-				});
+				)
+					.then((response) => response.json())
+					.then((data) => {
+						if (!data.error) {
+							requests.checkout.fullProcess();
+						}
+					});
+			} else if (page !== 404) {
+				requests.product.sizes.select();
+			}
 		},
 	},
 	cart: {
@@ -774,6 +757,7 @@ const requests = {
 			submitted: false,
 			addressID: "",
 			shipUUID: "",
+			customerProfile: {},
 			process() {
 				requests.generateCSRF(
 					requests.checkout.shipping.getaddressID
@@ -808,6 +792,14 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
+						console.log(data);
+						requests.checkout.shipping.customerProfile = {
+							...data.customer.preferredAddress,
+							...data.customer.profile,
+						};
+						console.log(
+							requests.checkout.shipping.customerProfile
+						);
 						if (data.customer) {
 							requests.checkout.shipping.addressID =
 								data.customer.addresses[0].addressId;
@@ -857,32 +849,7 @@ const requests = {
 								"https://www.solebox.com/en_ES/checkout?stage=shipping#shipping",
 							referrerPolicy:
 								"strict-origin-when-cross-origin",
-							body: `selected=true&id=${
-								requests.checkout.shipping.addressID
-							}&addressType=${
-								result.websites.solebox.profile
-									.addressType
-							}&snipesStore=&hermesId&postOfficeNumber=&packstationNumber=&postNumber=&postalCode=${
-								result.websites.solebox.profile.zipCode
-							}&countryCode=${
-								result.websites.solebox.profile
-									.countryCode
-							}&carrierName=&suite=${
-								result.websites.solebox.profile
-									.streetNumber
-							}&street=${result.websites.solebox.profile.street.replaceAll(
-								" ",
-								"+"
-							)}&city=${result.websites.solebox.profile.city.replaceAll(
-								" ",
-								"+"
-							)}&address2=${address2}}&lastName=${
-								result.websites.solebox.profile.lastName
-							}&firstName=${
-								result.websites.solebox.profile.name
-							}&title=${
-								result.websites.solebox.profile.title
-							}&csrf_token=${requests.checkout.CSRFtoken}`,
+							body: `selected=true&id=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_shipping_shippingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_shipping_shippingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_shipping_shippingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_shipping_shippingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_billing_billingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_billing_billingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_billing_billingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_billing_billingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_billing_billingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_billing_billingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&dwfrm_billing_billingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_contact_email=${requests.checkout.shipping.customerProfile.email}&dwfrm_contact_phone=${requests.checkout.shipping.customerProfile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
 							method: "POST",
 							mode: "cors",
 							credentials: "include",
@@ -890,6 +857,8 @@ const requests = {
 					)
 						.then((response) => response.json())
 						.then((data) => {
+							console.log(data);
+
 							requests.checkout.shipping.shipUUID =
 								data.order.shipping[0].UUID;
 							requests.checkout.shipping.submit();
@@ -921,7 +890,7 @@ const requests = {
 								"https://www.solebox.com/de_DE/checkout?stage=shipping",
 							referrerPolicy:
 								"strict-origin-when-cross-origin",
-							body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${result.websites.solebox.profile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${result.websites.solebox.profile.name}&dwfrm_shipping_shippingAddress_addressFields_lastName=${result.websites.solebox.profile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${result.websites.solebox.profile.zipCode}&dwfrm_shipping_shippingAddress_addressFields_city=${result.websites.solebox.profile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${result.websites.solebox.profile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${result.websites.solebox.profile.streetNumber}&dwfrm_shipping_shippingAddress_addressFields_address1=${result.websites.solebox.profile.street}&dwfrm_shipping_shippingAddress_addressFields_address2=${result.websites.solebox.profile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${result.websites.solebox.profile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${result.websites.solebox.profile.countryCode}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${result.websites.solebox.profile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${result.websites.solebox.profile.name}&dwfrm_billing_billingAddress_addressFields_lastName=${result.websites.solebox.profile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${result.websites.solebox.profile.zipCode}&dwfrm_billing_billingAddress_addressFields_city=${result.websites.solebox.profile.city}&dwfrm_billing_billingAddress_addressFields_street=${result.websites.solebox.profile.street}&dwfrm_billing_billingAddress_addressFields_suite=${result.websites.solebox.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address1=${result.websites.solebox.profile.streetNumber}&dwfrm_billing_billingAddress_addressFields_address2=${result.websites.solebox.profile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${result.websites.solebox.profile.countryCode}&dwfrm_billing_billingAddress_addressFields_phone=${result.websites.solebox.profile.phone}&dwfrm_contact_email=${result.websites.solebox.profile.email}&dwfrm_contact_phone=${result.websites.solebox.profile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
+							body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_shipping_shippingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_shipping_shippingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_shipping_shippingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_shipping_shippingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_billing_billingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_billing_billingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_billing_billingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_billing_billingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_billing_billingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_billing_billingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&dwfrm_billing_billingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_contact_email=${requests.checkout.shipping.customerProfile.email}&dwfrm_contact_phone=${requests.checkout.shipping.customerProfile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
 							method: "POST",
 							mode: "cors",
 							credentials: "include",
@@ -929,6 +898,8 @@ const requests = {
 					)
 						.then((response) => response.json())
 						.then((data) => {
+							console.log(data);
+
 							requests.checkout.shipping.submitted = true;
 							requests.checkout.payment.submit();
 						});
@@ -973,6 +944,7 @@ const requests = {
 		placeOrder: {
 			submitted: false,
 			submit() {
+				console.log("Placing order...");
 				fetch(
 					"https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/CheckoutServices-PlaceOrder?format=ajax",
 					{
@@ -1000,13 +972,13 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
+						console.log(data);
 						redText = data.error;
 						if (redText != true) {
 							window.open(data.continueUrl);
 						} else {
-							window.open(
-								`https://www.solebox.com/checkout?stage=placeOrder#placeOrder`
-							);
+							console.log("Opening cart page...");
+							window.open(`https://www.solebox.com/cart`);
 						}
 					});
 			},

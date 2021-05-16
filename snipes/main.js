@@ -427,7 +427,6 @@ const safe = {
 						selectedProfile.phone;
 				});
 			}
-
 		},
 		payment() {
 			document.getElementById("paymentMethod_Paypal").click();
@@ -503,18 +502,11 @@ const requests = {
 					global.waitForDOM(requests.cart.deleteItem);
 				}
 			});
-		} // else if (url.includes(paths.ATC)) {
-		// 	global.waitForDOM();
-		//}
-		else if (url.includes(paths.product)) {
+		} else if (url.includes(paths.product)) {
 			global.waitForDOM(requests.product.check404);
 		} else if (url.includes(paths.checkout.path)) {
 			requests.checkRegion();
-			// global.waitForDOM(safe.saveItemInfo);
-			// if (url.toString().includes(paths.checkout.shipping)) {
 			requests.checkout.shipping.process();
-			// 	} else if (url.toString().includes(paths.checkout.payment)) {
-			// 		global.waitForDOM(checkout.payment);
 		}
 	},
 	checkRegion() {
@@ -529,25 +521,25 @@ const requests = {
 			requests.regionData.snipesRegion2 = "de_DE";
 			requests.regionData.dwRegion = "Sites-snse-DE-AT-Site";
 			requests.regionData.delivery = "home_delivery";
-			requests.regionData.sizeAttrClassname = "talla Talla-";
+			requests.regionData.sizeAttrClassname = "size Size-";
 		} else if (url.includes(".at")) {
 			requests.regionData.snipesRegion = ".at";
 			requests.regionData.snipesRegion2 = "de_AT";
 			requests.regionData.dwRegion = "Sites-snse-DE-AT-Site";
 			requests.regionData.delivery = "home_delivery_at";
-			requests.regionData.sizeAttrClassname = "talla Talla-";
+			requests.regionData.sizeAttrClassname = "size Size-";
 		} else if (url.includes(".nl")) {
 			requests.regionData.snipesRegion = ".nl";
 			requests.regionData.snipesRegion2 = "nl_NL";
 			requests.regionData.dwRegion = "Sites-snse-NL-BE-Site";
 			requests.regionData.delivery = "home_delivery_nl";
-			requests.regionData.sizeAttrClassname = "talla Talla-";
+			requests.regionData.sizeAttrClassname = "maat Maat-";
 		} else if (url.includes(".fr")) {
 			requests.regionData.snipesRegion = ".fr";
 			requests.regionData.snipesRegion = "fr_FR";
 			requests.regionData.dwRegion = "Sites-snse-FR-Site";
 			requests.regionData.delivery = "home_delivery_fr";
-			requests.regionData.sizeAttrClassname = "talla Talla-";
+			requests.regionData.sizeAttrClassname = "taille Taille-";
 		} else if (url.includes(".it")) {
 			requests.regionData.snipesRegion = ".it";
 			requests.regionData.snipesRegion2 = "it_IT";
@@ -559,7 +551,11 @@ const requests = {
 			requests.regionData.snipesRegion2 = "nl_BE";
 			requests.regionData.dwRegion = "Sites-snse-NL-BE-Site";
 			requests.regionData.delivery = "home_delivery_be";
-			requests.regionData.sizeAttrClassname = "talla Talla-";
+			if (url.includes("/fr")) {
+				requests.regionData.sizeAttrClassname = "taille Taille-";
+			} else if (url.includes("/nl")) {
+				requests.regionData.sizeAttrClassname = "maat Maat-";
+			}
 		}
 	},
 	generateCSRF(callback) {
@@ -591,13 +587,11 @@ const requests = {
 		)
 			.then((response) => response.json())
 			.then((data) => {
-
 				requests.checkout.CSRFtoken = data.csrf.token;
 				callback();
 			});
 	},
 	saveItemInfo(itemInfo, itemImage, itemURL) {
-
 		let user = "";
 		chrome.storage.local.get(["websites"], function (result) {
 			user = result.websites.solebox.profile.email;
@@ -624,30 +618,8 @@ const requests = {
 	},
 	login() {
 		const CSRFtoken = document.querySelector("[name='csrf_token']").value;
-		fetch(
-			"https://www.solebox.com/de_DE/authentication?rurl=1&format=ajax",
-			{
-				headers: {
-					accept: "application/json, text/javascript, */*; q=0.01",
-					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-					"content-type":
-						"application/x-www-form-urlencoded; charset=UTF-8",
-					"sec-fetch-dest": "empty",
-					"sec-fetch-mode": "cors",
-					"sec-fetch-site": "same-origin",
-					"x-requested-with": "XMLHttpRequest",
-				},
-				referrer: "https://www.solebox.com/de_DE/login",
-				referrerPolicy: "strict-origin-when-cross-origin",
-				body: `dbcfb2dbe33eb14ecce6771cf1e21ceb=4af91e1b5234aa5c7231ba0b08e0e084&dwfrm_profile_customer_email=janmuntsiglesias%40gmail.com&dwfrm_profile_login_password=Xirimoia95&csrf_token=${CSRFtoken}`,
-				method: "POST",
-				mode: "cors",
-				credentials: "include",
-			}
-		)
 	},
 	product: {
-
 		check404() {
 			if (
 				!document.getElementsByClassName(
@@ -656,7 +628,6 @@ const requests = {
 			) {
 				requests.product.sizes.get();
 			} else {
-
 			}
 		},
 		sizes: {
@@ -734,12 +705,10 @@ const requests = {
 			},
 			select(sizes) {
 				if (safe.product.sizes.available.list.length > 0) {
-
 					if (!sizes.length > 0) {
 						("No preferred sizes detected, trying to select a random one.");
 						safe.product.sizes.available.list[0].click();
 					} else {
-
 						let success = false;
 						sizes.forEach((size) => {
 							if (
@@ -748,10 +717,8 @@ const requests = {
 								) &&
 								success === false
 							) {
-
 								safe.product.sizes.available.list.forEach(
 									(sizeElement) => {
-
 										if (
 											sizeElement.getAttribute(
 												"data-attr-value"
@@ -768,7 +735,6 @@ const requests = {
 							}
 						});
 						if (success === false) {
-
 							safe.product.sizes.available.list[0].click();
 						}
 						safe.product.addToCart("requests");
@@ -801,8 +767,7 @@ const requests = {
 				.then(function (response) {
 					return response.json();
 				})
-				.then(function (data) {
-				})
+				.then(function (data) {})
 				.then(() => {
 					if (error != true) {
 						snipes.startCheckout();
@@ -902,7 +867,6 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-
 						requests.checkout.shipping.shipUUID =
 							data.order.shipping.UUID;
 						requests.checkout.shipping.address.shippingAddress =
@@ -945,7 +909,6 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-
 						requests.checkout.payment.submit();
 					});
 			},

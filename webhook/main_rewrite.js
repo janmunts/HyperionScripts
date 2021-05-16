@@ -58,7 +58,7 @@ class publicWebhook {
 				},
 			]),
 			(this.footer = {
-				text: "HypersionScripts v0.0.1",
+				text: "HyperionScripts v0.1-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),
@@ -118,7 +118,7 @@ class privateWebhook {
 				},
 			]),
 			(this.footer = {
-				text: "HypersionScripts v0.0.1",
+				text: "HyperionScripts v0.1-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),
