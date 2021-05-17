@@ -1,6 +1,6 @@
 {
     "name": "HyperionScripts",
-    "version": "0.0.1",
+    "version": "0.1",
     "manifest_version": 2,
     "description": "HyperionScripts, always a wise choice.",
     "content_scripts": [
@@ -15,14 +15,18 @@
         {
             "matches": [
                 "https://www.snipes.com/*",
-                "https://www.snipes.es/*",
-                "https://www.snipes.it/*"
+                "https://www.snipes.at/*",
+                "https://www.snipes.nl/*",
+                "https://www.snipes.fr/*",
+                "https://www.snipes.it/*",
+                "https://www.snipes.be/*",
+                "https://www.snipes.es/*"
             ],
             "js": ["snipes/main.js"]
         },
         {
             "matches": ["<all_urls>"],
-            "js": ["webhook/main_rewrite.js"]
+            "js": ["webhook/main.js"]
         },
         {
             "matches": ["https://www.luisaviaroma.com/*"],

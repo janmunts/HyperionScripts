@@ -9,10 +9,12 @@ chrome.storage.local.get(
                         "color: rgb(206, 182, 102); font-size: 20px",
                         "color: rgb(206, 182, 102); font-size: 20px; font-weight: bold"
                     );
-                    if (result.websites.snipes.mode === "SAFE") {
-                        safe.urlCheck();
-                    } else if (result.websites.snipes.mode === "REQUESTS") {
-                        requests.urlCheck();
+                    if (result.websites.snipes.mode !== "OFF") {
+                        if (result.websites.snipes.mode === "SAFE") {
+                            safe.urlCheck();
+                        } else if (result.websites.snipes.mode === "REQUESTS") {
+                            requests.urlCheck();
+                        }
                     }
                 }
             } else {
@@ -250,7 +252,6 @@ const safe = {
             },
         },
         addToCart(mode) {
-            console.log("Adding to cart: " + mode);
             let added = false;
 
             chrome.runtime.onMessage.addListener(
@@ -275,7 +276,8 @@ const safe = {
                     if (mode === "safe") {
                         safe.checkout.redirect();
                     } else if (mode === "requests") {
-                        requests.checkout.shipping();
+                        // requests.checkout.shipping.process();
+                        requests.checkout.redirect();
                     }
                     clearInterval(ATCButtonClick);
                 }
@@ -571,7 +573,7 @@ const requests = {
     product: {
         check404() {
             if (!document.getElementsByClassName("t-error-page-title-exp")[0]) {
-                requests.product.sizes.get();
+                requests.product.sizes.select();
             } else {
             }
         },
@@ -691,10 +693,6 @@ const requests = {
                 .then(() => {
                     if (error != true) {
                         snipes.startCheckout();
-                    } else {
-                        console.log(
-                            "Error while adding to cart: " + errorMessage
-                        );
                     }
                 });
         },
@@ -771,8 +769,7 @@ const requests = {
                             "sec-fetch-site": "same-origin",
                             "x-requested-with": "XMLHttpRequest",
                         },
-                        referrer:
-                            "https://www.snipes.es/checkout?stage=shipping",
+                        referrer: location.toString(), // "https://www.snipes.es/checkout?stage=shipping"
                         referrerPolicy: "strict-origin-when-cross-origin",
                         body: `methodID=${requests.regionData.delivery}&shipmentUUID`,
                         method: "POST",
@@ -814,8 +811,7 @@ const requests = {
                             "sec-fetch-site": "same-origin",
                             "x-requested-with": "XMLHttpRequest",
                         },
-                        referrer:
-                            "https://www.snipes.es/checkout?stage=shipping",
+                        referrer: location.toString(), // "https://www.snipes.es/checkout?stage=shipping",
                         referrerPolicy: "strict-origin-when-cross-origin",
                         body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&csrf_token=${requests.checkout.CSRFtoken}`,
                         method: "POST",
@@ -849,8 +845,7 @@ const requests = {
                             "sec-fetch-site": "same-origin",
                             "x-requested-with": "XMLHttpRequest",
                         },
-                        referrer:
-                            "https://www.snipes.es/checkout?stage=payment",
+                        referrer: location.toString(), // "https://www.snipes.es/checkout?stage=payment",
                         referrerPolicy: "strict-origin-when-cross-origin",
                         body: `dwfrm_billing_paymentMethod=Paypal&dwfrm_giftCard_cardNumber=&dwfrm_giftCard_pin=&csrf_token=${requests.checkout.CSRFtoken}`,
                         method: "POST",
@@ -888,8 +883,7 @@ const requests = {
                             "sec-fetch-site": "same-origin",
                             "x-requested-with": "XMLHttpRequest",
                         },
-                        referrer:
-                            "https://www.snipes.es/checkout?stage=placeOrder",
+                        referrer: location.toString(), // "https://www.snipes.es/checkout?stage=placeOrder",
                         referrerPolicy: "strict-origin-when-cross-origin",
                         body: null,
                         method: "POST",
