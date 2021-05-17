@@ -75,7 +75,6 @@ function loadProfileData(profile) {
 }
 
 function saveAsNewProfile() {
-	console.log("Saving profile...");
 	if (
 		document.getElementById("profile-name").value !== "" &&
 		document.getElementById("profile-name").value !== undefined &&
@@ -93,7 +92,6 @@ function saveAsNewProfile() {
 				}
 			});
 			if (profileNameAvailable) {
-				console.log("Profile name available!");
 				let newProfile = {
 					profileName:
 						document.getElementById("profile-name").value,
@@ -123,7 +121,6 @@ function saveAsNewProfile() {
 
 				chrome.storage.local.get(["profiles"], function (result) {
 					let newProfiles = result.profiles;
-					console.log(newProfiles);
 					if (newProfiles.list) {
 						newProfiles.list.push(newProfile);
 					} else {
@@ -131,14 +128,9 @@ function saveAsNewProfile() {
 						newProfiles.list.push(newProfile);
 					}
 					newProfiles.selected = newProfile;
-					console.log(newProfiles);
 					chrome.storage.local.set(
 						{ profiles: newProfiles },
 						function () {
-							console.log(
-								"successfully saved as new profile"
-							);
-							console.log(newProfile);
 							location.reload();
 						}
 					);
@@ -215,8 +207,6 @@ function updateProfile() {
 							chrome.storage.local.set(
 								{ profiles: newProfiles },
 								function () {
-									console.log("Profile updated!");
-									console.log(newProfiles);
 									location.reload();
 								}
 							);

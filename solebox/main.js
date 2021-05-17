@@ -710,7 +710,6 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log(data);
                         requests.checkout.shipping.customerProfile = {
                             ...data.customer.preferredAddress,
                             ...data.customer.profile,
@@ -720,7 +719,6 @@ const requests = {
                                 data.customer.addresses[0].addressId;
                             requests.checkout.shipping.getRates();
                         } else {
-                            console.log("User not logged in");
                             window.open(
                                 location
                                     .toString()
@@ -754,9 +752,6 @@ const requests = {
             },
             getRates() {
                 chrome.storage.local.get(["websites"], function (result) {
-                    console.log(
-                        `selected=true&id=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_shipping_shippingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_shipping_shippingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_shipping_shippingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_shipping_shippingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_billing_billingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_billing_billingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_billing_billingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_billing_billingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_billing_billingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_billing_billingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&dwfrm_billing_billingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_contact_email=${requests.checkout.shipping.customerProfile.email}&dwfrm_contact_phone=${requests.checkout.shipping.customerProfile.phone}&csrf_token=${requests.checkout.CSRFtoken}`
-                    );
                     let address2 = "";
                     if (
                         result.websites.solebox.profile.address2 != "" &&
@@ -796,8 +791,6 @@ const requests = {
                     )
                         .then((response) => response.json())
                         .then((data) => {
-                            console.log(data);
-
                             requests.checkout.shipping.shipUUID =
                                 data.order.shipping[0].UUID;
                             requests.checkout.shipping.submit();
@@ -835,8 +828,6 @@ const requests = {
                     )
                         .then((response) => response.json())
                         .then((data) => {
-                            console.log(data);
-
                             requests.checkout.shipping.submitted = true;
                             requests.checkout.payment.submit();
                         });
@@ -873,7 +864,6 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log(data);
                         if (!data.error) {
                             requests.checkout.payment.submitted = true;
                             requests.checkout.placeOrder.submit();
@@ -912,7 +902,6 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log(data);
                         redText = data.error;
                         if (!redText && data.continueUrl) {
                             window.open(data.continueUrl);

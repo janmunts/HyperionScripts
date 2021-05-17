@@ -1,7 +1,4 @@
-console.log("settings script loaded");
-
 function loadData() {
-	console.log("loading data...");
 	chrome.storage.local.get(["settings"], function (result) {
 		document.getElementById("webhook-url-input").value =
 			result.settings.webhook.url;
@@ -16,25 +13,18 @@ function saveData() {
 		oldSettings.webhook.url =
 			document.getElementById("webhook-url-input").value;
 		chrome.storage.local.set(
-			{ settings: oldSettings },
-			function (result) {
-				console.log("Data saved:");
-				console.log(oldSettings);
-			}
+			{ settings: oldSettings }
 		);
 	});
 }
 
 var testWebhookRequest = new XMLHttpRequest();
 chrome.storage.local.get(["settings"], function (result) {
-	console.log(`Webhook URL: ${result.settings.webhook.url}`);
 	testWebhookRequest.open("POST", result.settings.webhook.url);
 	testWebhookRequest.setRequestHeader("Content-type", "application/json");
 });
 
 function sendTestWebhook() {
-	console.log("sending webhook...");
-
 	var testParams = {
 		username: "HyperionScripts notifier",
 		avatar_url:
@@ -65,10 +55,7 @@ function clearData() {
 	var confirmation = confirm("ARE YOU SURE YOU WANT TO CLEAR YOUR DATA?");
 	if (confirmation === true) {
 		chrome.storage.local.clear();
-		console.log("DATA CLEARED");
 		window.close();
-	} else {
-		console.log("CANCELLED");
 	}
 }
 
