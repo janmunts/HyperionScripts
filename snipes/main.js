@@ -276,8 +276,8 @@ const safe = {
                     if (mode === "safe") {
                         safe.checkout.redirect();
                     } else if (mode === "requests") {
-                        // requests.checkout.shipping.process();
-                        requests.checkout.redirect();
+                        requests.checkout.shipping.process();
+                        // requests.checkout.redirect();
                     }
                     clearInterval(ATCButtonClick);
                 }
@@ -779,6 +779,8 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
+                        console.log(data);
+
                         requests.checkout.shipping.shipUUID =
                             data.order.shipping.UUID;
                         requests.checkout.shipping.address.shippingAddress =
@@ -821,6 +823,7 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
+                        console.log(data);
                         requests.checkout.payment.submit();
                     });
             },
@@ -855,6 +858,7 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then(function (data) {
+                        console.log(data);
                         if (data.status > 400) {
                             requests.checkout.payment.submit();
                         }
@@ -893,6 +897,7 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
+                        console.log(data);
                         if (data.continueUrl) {
                             window.open(data.continueUrl);
                         }

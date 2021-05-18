@@ -6,8 +6,8 @@ chrome.storage.local.get(
                 if (result.active === true) {
                     console.log(
                         `%cHyperionScripts injected! Hi %c${result.account.discordUsername}!`,
-                        "color: rgb(206, 182, 102); font-size: 20px",
-                        "color: rgb(206, 182, 102); font-size: 20px; font-weight: bold"
+                        "color: rgb(206, 182, 102); font-size: 15px",
+                        "color: rgb(206, 182, 102); font-size: 15px; font-weight: bold"
                     );
                     if (result.websites.solebox.mode !== "OFF") {
                         if (result.websites.solebox.mode === "SAFE") {
@@ -241,8 +241,8 @@ const safe = {
                         if (mode === "safe") {
                             safe.checkout.redirect();
                         } else if (mode === "requests") {
-                            requests.checkout.redirect();
-                            // requests.checkout.shipping.process();
+                            // requests.checkout.redirect();
+                            requests.checkout.shipping.process();
                         }
                     }
                 }
@@ -443,8 +443,7 @@ const requests = {
                     "sec-fetch-site": "same-origin",
                     "x-requested-with": "XMLHttpRequest",
                 },
-                referrer:
-                    "https://www.solebox.com/de_DE/checkout?registration=false",
+                referrer: location.toString(), // "https://www.solebox.com/de_DE/checkout?registration=false",
                 referrerPolicy: "strict-origin-when-cross-origin",
                 body: null,
                 method: "POST",
@@ -710,6 +709,7 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
+                        console.log(data);
                         requests.checkout.shipping.customerProfile = {
                             ...data.customer.preferredAddress,
                             ...data.customer.profile,
@@ -783,7 +783,35 @@ const requests = {
                             },
                             referrer: location.toString(), // "https://www.solebox.com/en_ES/checkout?stage=shipping#shipping",
                             referrerPolicy: "strict-origin-when-cross-origin",
-                            body: `selected=true&id=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${requests.checkout.shipping.addressID}&dwfrm_shipping_shippingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_shipping_shippingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_shipping_shippingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_shipping_shippingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_shipping_shippingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_shipping_shippingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_shipping_shippingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_shipping_shippingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_shipping_shippingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_shipping_shippingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&dwfrm_billing_billingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_billing_billingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_billing_billingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_billing_billingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_billing_billingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_billing_billingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_billing_billingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&dwfrm_billing_billingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_contact_email=${requests.checkout.shipping.customerProfile.email}&dwfrm_contact_phone=${requests.checkout.shipping.customerProfile.phone}&csrf_token=${requests.checkout.CSRFtoken}`,
+                            body: `selected=true&id=${
+                                requests.checkout.shipping.addressID
+                            }&addressType=home-delivery&snipesStore=&postOfficeNumber=&packstationNumber=&postNumber=&postalCode=${
+                                requests.checkout.shipping.customerProfile
+                                    .postalCode
+                            }&countryCode=${
+                                requests.checkout.shipping.customerProfile
+                                    .countryCode.value
+                            }&suite=${
+                                requests.checkout.shipping.customerProfile.suite
+                            }&street=${requests.checkout.shipping.customerProfile.street.replaceAll(
+                                " ",
+                                "+"
+                            )}&city=${requests.checkout.shipping.customerProfile.city.replaceAll(
+                                " ",
+                                "+"
+                            )}&address2=${requests.checkout.shipping.customerProfile.address2.replaceAll(
+                                " ",
+                                "+"
+                            )}&lastName=${requests.checkout.shipping.customerProfile.lastName.replaceAll(
+                                " ",
+                                "+"
+                            )}&firstName=${requests.checkout.shipping.customerProfile.firstName.replaceAll(
+                                " ",
+                                "+"
+                            )}&title=${
+                                requests.checkout.shipping.customerProfile.title
+                            }&csrf_token=${requests.checkout.CSRFtoken}`,
+                            // &dwfrm_billing_billingAddress_addressFields_title=${requests.checkout.shipping.customerProfile.title}&dwfrm_billing_billingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName}&dwfrm_billing_billingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName}&dwfrm_billing_billingAddress_addressFields_postalCode=${requests.checkout.shipping.customerProfile.postalCode}&dwfrm_billing_billingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city}&dwfrm_billing_billingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street}&dwfrm_billing_billingAddress_addressFields_suite=${requests.checkout.shipping.customerProfile.suite}&dwfrm_billing_billingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1}&dwfrm_billing_billingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2}&dwfrm_billing_billingAddress_addressFields_countryCode=${requests.checkout.shipping.customerProfile.countryCode.value}&dwfrm_billing_billingAddress_addressFields_phone=${requests.checkout.shipping.customerProfile.phone}&dwfrm_contact_email=${requests.checkout.shipping.customerProfile.email}&dwfrm_contact_phone=${requests.checkout.shipping.customerProfile.phone}
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
@@ -791,6 +819,7 @@ const requests = {
                     )
                         .then((response) => response.json())
                         .then((data) => {
+                            console.log(data);
                             requests.checkout.shipping.shipUUID =
                                 data.order.shipping[0].UUID;
                             requests.checkout.shipping.submit();
@@ -828,6 +857,7 @@ const requests = {
                     )
                         .then((response) => response.json())
                         .then((data) => {
+                            console.log(data);
                             requests.checkout.shipping.submitted = true;
                             requests.checkout.payment.submit();
                         });
@@ -864,6 +894,7 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
+                        console.log(data);
                         if (!data.error) {
                             requests.checkout.payment.submitted = true;
                             requests.checkout.placeOrder.submit();
@@ -902,6 +933,7 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
+                        console.log(data);
                         redText = data.error;
                         if (!redText && data.continueUrl) {
                             window.open(data.continueUrl);
