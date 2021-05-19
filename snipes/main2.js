@@ -9,11 +9,11 @@ chrome.storage.local.get(
                         "color: rgb(206, 182, 102); font-size: 15px",
                         "color: rgb(206, 182, 102); font-size: 15px; font-weight: bold"
                     );
-                    if (result.websites.solebox.mode !== "OFF") {
-                        if (result.websites.solebox.mode === "SAFE") {
+                    if (result.websites.snipes.mode !== "OFF") {
+                        if (result.websites.snipes.mode === "SAFE") {
                             safe.urlCheck();
                         } else if (
-                            result.websites.solebox.mode === "REQUESTS"
+                            result.websites.snipes.mode === "REQUESTS"
                         ) {
                             requests.urlCheck();
                         }
@@ -107,7 +107,7 @@ const safe = {
                     .trim(),
                 payPalURL: "",
                 mode: "SAFE",
-                profile: result.websites.solebox.profile.profileName,
+                profile: result.websites.snipes.profile.profileName,
                 webhookMessageSent: false,
             };
             checkoutFromStorage.lastCheckout = currentProduct;
@@ -116,7 +116,7 @@ const safe = {
     },
     login() {
         chrome.storage.local.get(["websites"], function (result) {
-            if (result.websites.solebox.profile) {
+            if (result.websites.snipes.profile) {
                 const emailElement = document.getElementById(
                         "dwfrm_profile_customer_email"
                     ),
@@ -127,9 +127,9 @@ const safe = {
                         "f-button f-button--medium f-button--primary f-button--full-width js-submit"
                     )[0];
 
-                emailElement.value = result.websites.solebox.profile.email;
+                emailElement.value = result.websites.snipes.profile.email;
                 passwordElement.value =
-                    result.websites.solebox.profile.password;
+                    result.websites.snipes.profile.password;
                 loginButtonElement.click();
             }
         });
@@ -186,7 +186,7 @@ const safe = {
                         );
                     });
                     chrome.storage.local.get(["websites"], function (result) {
-                        const sizes = result.websites.solebox.sizes;
+                        const sizes = result.websites.snipes.sizes;
                         if (safe.product.sizes.available.list.length > 0) {
                             if (!sizes.length > 0) {
                                 ("No preferred sizes detected, trying to select a random one.");
@@ -231,7 +231,7 @@ const safe = {
             chrome.runtime.onMessage.addListener(
                 (message, sender, sendResponse) => {
                     if (
-                        message.request.url.includes("solebox.com") &&
+                        message.request.url.includes("solebox") &&
                         message.request.url.includes("add-product") &&
                         message.request.statusCode < 400
                     ) {
@@ -297,7 +297,7 @@ const safe = {
             chrome.runtime.onMessage.addListener(
                 (message, sender, sendResponse) => {
                     if (
-                        message.request.url.includes("solebox.com") &&
+                        message.request.url.includes("solebox") &&
                         message.request.url.includes("shipping") &&
                         message.request.statusCode < 400
                     ) {
@@ -329,7 +329,7 @@ const safe = {
                     .click();
             } else {
                 chrome.torage.local.get(["profiles"], function (result) {
-                    const selectedProfile = result.websites.solebox.profile;
+                    const selectedProfile = result.websites.snipes.profile;
                     document.querySelectorAll('[data-value="Herr"]')[0].click();
                     document.getElementById(
                         "dwfrm_shipping_shippingAddress_addressFields_firstName"
@@ -369,7 +369,7 @@ const safe = {
             chrome.runtime.onMessage.addListener(
                 (message, sender, sendResponse) => {
                     if (
-                        message.request.url.includes("solebox.com") &&
+                        message.request.url.includes("snipes") &&
                         message.request.url.includes("SubmitPayment") &&
                         message.request.statusCode < 400
                     ) {
@@ -387,7 +387,7 @@ const safe = {
             chrome.runtime.onMessage.addListener(
                 (message, sender, sendResponse) => {
                     if (
-                        message.request.url.includes("solebox.") &&
+                        message.request.url.includes("snipes.") &&
                         message.request.url.includes("PlaceOrder")
                     ) {
                         if (message.request.statusCode === 429) {
@@ -460,7 +460,7 @@ const requests = {
     saveItemInfo(itemInfo, itemImage, itemURL) {
         let user = "";
         chrome.storage.local.get(["websites"], function (result) {
-            user = result.websites.solebox.profile.email;
+            user = result.websites.snipes.profile.email;
         });
         chrome.storage.local.get(["checkout", "websites"], function (result) {
             let checkoutFromStorage = result.checkout;
@@ -475,7 +475,7 @@ const requests = {
                 itemPageURL: itemURL,
                 payPalURL: "",
                 mode: "REQUESTS",
-                profile: result.websites.solebox.profile.profileName,
+                profile: result.websites.snipes.profile.profileName,
                 webhookMessageSent: false,
             };
             checkoutFromStorage.lastCheckout = currentProduct;
@@ -507,7 +507,7 @@ const requests = {
                     },
                     referrer: location.toString(), // "https://www.solebox.com/en_ES/login",
                     referrerPolicy: "strict-origin-when-cross-origin",
-                    body: `${ID}=${value}&dwfrm_profile_customer_email=${result.websites.solebox.profile.email}&dwfrm_profile_login_password=${result.websites.solebox.profile.password}&csrf_token=${CSRFtoken}`,
+                    body: `${ID}=${value}&dwfrm_profile_customer_email=${result.websites.snipes.profile.email}&dwfrm_profile_login_password=${result.websites.solebox.profile.password}&csrf_token=${CSRFtoken}`,
                     method: "POST",
                     mode: "cors",
                     credentials: "include",
@@ -575,7 +575,7 @@ const requests = {
                         );
                     });
                     chrome.storage.local.get(["websites"], function (result) {
-                        const sizes = result.websites.solebox.sizes;
+                        const sizes = result.websites.snipes.sizes;
                         if (safe.product.sizes.available.list.length > 0) {
                             if (!sizes.length > 0) {
                                 ("No preferred sizes detected, trying to select a random one.");
