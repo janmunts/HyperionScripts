@@ -979,7 +979,7 @@ const requests = {
 							"sec-fetch-site": "same-origin",
 							"x-requested-with": "XMLHttpRequest",
 						},
-						referrer: location.toString(), // "https://www.snipes.es/checkout?stage=placeOrder",
+						referrer: location.toString(),
 						referrerPolicy: "strict-origin-when-cross-origin",
 						body: null,
 						method: "POST",
