@@ -1,73 +1,77 @@
 {
-	"name": "HyperionScripts",
-	"version": "0.1",
-	"manifest_version": 2,
-	"description": "HyperionScripts, always a wise choice.",
-	"content_scripts": [
-		{
-			"matches": ["https://hyperionscripts.metalabs.gg/*"],
-			"js": ["gui/auth.js"]
-		},
-		{
-			"matches": ["https://www.solebox.com/*"],
-			"js": ["solebox/main.js"]
-		},
-		{
-			"matches": [
-				"https://www.snipes.com/*",
-				"https://www.snipes.at/*",
-				"https://www.snipes.nl/*",
-				"https://www.snipes.fr/*",
-				"https://www.snipes.it/*",
-				"https://www.snipes.be/*",
-				"https://www.snipes.es/*"
-			],
-			"js": ["snipes/main2.js"]
-		},
-		{
-			"matches": ["<all_urls>"],
-			"js": ["webhook/main.js"]
-		},
-		{
-			"matches": ["https://www.luisaviaroma.com/*"],
-			"js": ["lvr/main.js"]
-		},
-		{
-			"matches": ["https://www.offspring.co.uk/*"],
-			"js": ["offspring/main.js"]
-		},
-		{
-			"matches": ["https://payments.worldpay.com/*"],
-			"js": ["offspring/worldpay.js"]
-		}
-	],
-	"browser_action": {
-		"default_title": "HyperionScripts"
-	},
+    "name": "HyperionScripts Beta",
+    "version": "0.2",
+    "manifest_version": 2,
+    "description": "HyperionScripts, always a wise choice.",
+    "content_scripts": [
+        {
+            "matches": ["https://hyperionscripts.metalabs.gg/*"],
+            "js": ["gui/auth.js"]
+        },
+        {
+            "matches": ["https://www.solebox.com/*"],
+            "js": ["solebox/main.js"]
+        },
+        {
+            "matches": [
+                "https://www.snipes.com/*",
+                "https://www.snipes.at/*",
+                "https://www.snipes.nl/*",
+                "https://www.snipes.fr/*",
+                "https://www.snipes.it/*",
+                "https://www.snipes.be/*",
+                "https://www.snipes.es/*"
+            ],
+            "js": ["snipes/main2.js"]
+        },
+        {
+            "matches": ["https://www.luisaviaroma.com/*"],
+            "js": ["lvr/main.js"]
+        },
+        {
+            "matches": ["https://www.offspring.co.uk/*"],
+            "js": ["offspring/main.js"]
+        },
+        {
+            "matches": ["https://payments.worldpay.com/*"],
+            "js": ["offspring/worldpay.js"]
+        },
+        {
+            "matches": ["<all_urls>"],
+            "js": ["webhook/main.js"]
+        },
+        {
+            "matches": ["https://discord.com/*"],
+            "js": ["link-opener.js"]
+        }
+    ],
+    "browser_action": {
+        "default_title": "HyperionScripts"
+    },
 
-	"icons": {
-		"16": "icons/HyperionScripts-logo-16.png",
-		"32": "icons/HyperionScripts-logo-32.png",
-		"48": "icons/HyperionScripts-logo-48.png",
-		"128": "icons/HyperionScripts-logo-128.png"
-	},
+    "icons": {
+        "16": "icons/HyperionScripts-logo-16.png",
+        "32": "icons/HyperionScripts-logo-32.png",
+        "48": "icons/HyperionScripts-logo-48.png",
+        "128": "icons/HyperionScripts-logo-128.png"
+    },
 
-	"background": {
-		"scripts": ["background.js"]
-	},
+    "background": {
+        "scripts": ["background.js"]
+    },
 
-	"options_ui": {
-		"page": "gui/DISCORD LOGIN _ HyperionScripts GUI.html",
-		"open_in_tab": true
-	},
+    "options_ui": {
+        "page": "gui/DISCORD LOGIN _ HyperionScripts GUI.html",
+        "open_in_tab": true
+    },
 
-	"permissions": [
-		"storage",
-		"tabs",
-		"http://*/*",
-		"https://*/*",
-		"activeTab",
-		"proxy",
-		"webRequest"
-	]
+    "permissions": [
+        "storage",
+        "tabs",
+        "http://*/*",
+        "https://*/*",
+        "activeTab",
+        "proxy",
+        "webRequest"
+    ]
 }

@@ -13,6 +13,7 @@
             "url": ""
         },
         "features": {
+            "autoLogin": { "solebox": false, "snipes": false },
             "preCart": {
                 "genareted": false,
                 "generating": false,
