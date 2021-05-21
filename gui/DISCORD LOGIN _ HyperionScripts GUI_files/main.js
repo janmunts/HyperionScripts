@@ -24,7 +24,7 @@ chrome.storage.local.get(["initialized"], function (result) {
                     url: "",
                 },
                 features: {
-                    autoLogin: { solebox: false, snipes: false },
+                    autoLogin: { solebox: false, snipes: false, zalando: true },
                     preCart: {
                         genareted: false,
                         generating: false,
@@ -45,6 +45,11 @@ chrome.storage.local.get(["initialized"], function (result) {
                     sizes: [],
                 },
                 snipes: {
+                    profile: {},
+                    mode: "SAFE",
+                    sizes: [],
+                },
+                zalando: {
                     profile: {},
                     mode: "SAFE",
                     sizes: [],

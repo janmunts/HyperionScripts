@@ -565,7 +565,7 @@ const requests = {
         const CSRFtoken = document.querySelector("[name='csrf_token']").value;
         const ID = document.querySelectorAll("[data-value]")[0].dataset.id,
             value = document.querySelectorAll("[data-value]")[0].dataset.value;
-        chrome.storage.local.get(["websites"], function (result) {
+        chrome.storage.local.get(["websites", "settings"], function (result) {
             fetch("https://www.snipes.es/authentication?rurl=2&format=ajax", {
                 headers: {
                     accept: "application/json, text/javascript, */*; q=0.01",
@@ -889,7 +889,6 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log(data);
                         requests.checkout.shipping.customerProfile = {
                             ...data.customer.preferredAddress,
                             ...data.customer.profile,
@@ -911,9 +910,6 @@ const requests = {
                                 "color: rgb(206, 182, 102); font-size: 12px"
                             );
                             if (requests.checkout.shipping.attempts < 3) {
-                                console.log(
-                                    requests.checkout.shipping.attempts
-                                );
                                 chrome.storage.local.get(
                                     ["settings"],
                                     function (result) {
@@ -965,69 +961,6 @@ const requests = {
                     "color: rgb(206, 182, 102); font-size: 12px"
                 );
                 chrome.storage.local.get(["websites"], function (result) {
-                    // fetch(
-                    //     `https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SubmitShipping?format=ajax`,
-                    //     {
-                    //         headers: {
-                    //             accept:
-                    //                 "application/json, text/javascript, */*; q=0.01",
-                    //             "accept-language": "en,ca;q=0.9,es;q=0.8",
-                    //             "content-type":
-                    //                 "application/x-www-form-urlencoded; charset=UTF-8",
-                    //             "sec-ch-ua":
-                    //                 '"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
-                    //             "sec-ch-ua-mobile": "?0",
-                    //             "sec-fetch-dest": "empty",
-                    //             "sec-fetch-mode": "cors",
-                    //             "sec-fetch-site": "same-origin",
-                    //             "x-requested-with": "XMLHttpRequest",
-                    //         },
-                    //         referrer: location.toString(),
-                    //         referrerPolicy: "strict-origin-when-cross-origin",
-                    //         body: `originalShipmentUUID=${
-                    //             requests.checkout.shipping.shipUUID
-                    //         }&shipmentUUID=${
-                    //             requests.checkout.shipping.shipUUID
-                    //         }&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${
-                    //             requests.checkout.shipping.addressID
-                    //         }&dwfrm_shipping_shippingAddress_addressFields_title=${
-                    //             requests.checkout.shipping.customerProfile.title
-                    //         }&dwfrm_shipping_shippingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName.replaceAll(
-                    //             " ",
-                    //             "+"
-                    //         )}&dwfrm_shipping_shippingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName.replaceAll(
-                    //             " ",
-                    //             "+"
-                    //         )}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${
-                    //             requests.checkout.shipping.customerProfile
-                    //                 .postalCode
-                    //         }&dwfrm_shipping_shippingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city.replaceAll(
-                    //             " ",
-                    //             "+"
-                    //         )}&dwfrm_shipping_shippingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street.replaceAll(
-                    //             " ",
-                    //             "+"
-                    //         )}&dwfrm_shipping_shippingAddress_addressFields_suite=${
-                    //             requests.checkout.shipping.customerProfile.suite
-                    //         }&dwfrm_shipping_shippingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1.replaceAll(
-                    //             " ",
-                    //             "+"
-                    //         )}&dwfrm_shipping_shippingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2.replaceAll(
-                    //             " ",
-                    //             "+"
-                    //         )}&dwfrm_shipping_shippingAddress_addressFields_phone=${
-                    //             requests.checkout.shipping.customerProfile.phone
-                    //         }&dwfrm_shipping_shippingAddress_addressFields_countryCode=${
-                    //             requests.checkout.shipping.customerProfile
-                    //                 .countryCode.value
-                    //         }&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&csrf_token=${
-                    //             requests.checkout.CSRFtoken
-                    //         }`,
-                    //         method: "POST",
-                    //         mode: "cors",
-                    //         credentials: "include",
-                    //     }
-                    // )
                     fetch(
                         `https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SubmitShipping?format=ajax`,
                         {
@@ -1047,7 +980,45 @@ const requests = {
                             },
                             referrer: location.toString(),
                             referrerPolicy: "strict-origin-when-cross-origin",
-                            body: `originalShipmentUUID=${requests.checkout.shipping.shipUUID}&shipmentUUID=${requests.checkout.shipping.shipUUID}&csrf_token=${requests.checkout.CSRFtoken}`,
+                            body: `originalShipmentUUID=${
+                                requests.checkout.shipping.shipUUID
+                            }&shipmentUUID=${
+                                requests.checkout.shipping.shipUUID
+                            }&dwfrm_shipping_shippingAddress_shippingMethodID=home-delivery_europe&address-selector=${
+                                requests.checkout.shipping.addressID
+                            }&dwfrm_shipping_shippingAddress_addressFields_title=${
+                                requests.checkout.shipping.customerProfile.title
+                            }&dwfrm_shipping_shippingAddress_addressFields_firstName=${requests.checkout.shipping.customerProfile.firstName.replaceAll(
+                                " ",
+                                "+"
+                            )}&dwfrm_shipping_shippingAddress_addressFields_lastName=${requests.checkout.shipping.customerProfile.lastName.replaceAll(
+                                " ",
+                                "+"
+                            )}&dwfrm_shipping_shippingAddress_addressFields_postalCode=${
+                                requests.checkout.shipping.customerProfile
+                                    .postalCode
+                            }&dwfrm_shipping_shippingAddress_addressFields_city=${requests.checkout.shipping.customerProfile.city.replaceAll(
+                                " ",
+                                "+"
+                            )}&dwfrm_shipping_shippingAddress_addressFields_street=${requests.checkout.shipping.customerProfile.street.replaceAll(
+                                " ",
+                                "+"
+                            )}&dwfrm_shipping_shippingAddress_addressFields_suite=${
+                                requests.checkout.shipping.customerProfile.suite
+                            }&dwfrm_shipping_shippingAddress_addressFields_address1=${requests.checkout.shipping.customerProfile.address1.replaceAll(
+                                " ",
+                                "+"
+                            )}&dwfrm_shipping_shippingAddress_addressFields_address2=${requests.checkout.shipping.customerProfile.address2.replaceAll(
+                                " ",
+                                "+"
+                            )}&dwfrm_shipping_shippingAddress_addressFields_phone=${
+                                requests.checkout.shipping.customerProfile.phone
+                            }&dwfrm_shipping_shippingAddress_addressFields_countryCode=${
+                                requests.checkout.shipping.customerProfile
+                                    .countryCode.value
+                            }&serviceShippingMethod=ups-standard&dwfrm_shipping_shippingAddress_shippingAddressUseAsBillingAddress=true&csrf_token=${
+                                requests.checkout.CSRFtoken
+                            }`,
                             method: "POST",
                             mode: "cors",
                             credentials: "include",
@@ -1055,22 +1026,13 @@ const requests = {
                     )
                         .then((response) => response.json())
                         .then((data) => {
-                            console.log(data);
-                            if (!data.error) {
-                                console.log(
-                                    `%cHyperionScripts - %cSuccessfully submitted shipping!`,
-                                    "color: rgb(206, 182, 102); font-size: 12px",
-                                    "color: rgb(100, 200, 0); font-size: 12px"
-                                );
-                                requests.checkout.shipping.submitted = true;
-                                requests.checkout.payment.submit();
-                            } else {
-                                console.error(
-                                    `%cHyperionScripts - %cCould not submit shipping!`,
-                                    "color: rgb(206, 182, 102); font-size: 12px",
-                                    "color: rgb(200, 100, 0); font-size: 12px"
-                                );
-                            }
+                            console.log(
+                                `%cHyperionScripts - %cSuccessfully submitted shipping!`,
+                                "color: rgb(206, 182, 102); font-size: 12px",
+                                "color: rgb(100, 200, 0); font-size: 12px"
+                            );
+                            requests.checkout.shipping.submitted = true;
+                            requests.checkout.payment.submit();
                         });
                 });
             },
@@ -1109,7 +1071,6 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log(data);
                         if (!data.error) {
                             console.log(
                                 `%cHyperionScripts - %cSuccessfully submitted payment!`,
@@ -1157,7 +1118,6 @@ const requests = {
                 )
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log(data);
                         redText = data.error;
                         if (!redText && data.continueUrl) {
                             console.log(

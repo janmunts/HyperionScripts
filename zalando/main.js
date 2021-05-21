@@ -1,3 +1,4 @@
+console.log("script injected");
 chrome.storage.local.get(
     ["initialized", "active", "account", "websites"],
     function (result) {
@@ -9,11 +10,11 @@ chrome.storage.local.get(
                         "color: rgb(206, 182, 102); font-size: 15px",
                         "color: rgb(206, 182, 102); font-size: 15px; font-weight: bold"
                     );
-                    if (result.websites.solebox.mode !== "OFF") {
-                        if (result.websites.solebox.mode === "SAFE") {
+                    if (result.websites.zalando.mode !== "OFF") {
+                        if (result.websites.zalando.mode === "SAFE") {
                             safe.urlCheck();
                         } else if (
-                            result.websites.solebox.mode === "REQUESTS"
+                            result.websites.zalando.mode === "REQUESTS"
                         ) {
                             requests.urlCheck();
                         }
@@ -33,6 +34,12 @@ chrome.storage.local.get(
         }
     }
 );
+
+document
+    .querySelector('[href="/myaccount/"]')
+    .addEventListener("click", function () {
+        safe.login();
+    });
 
 const paths = {
     login: "/login",
@@ -57,9 +64,10 @@ const global = {
 
 const safe = {
     urlCheck() {
+        requests.login();
         url = location.toString();
 
-        if (url.includes(paths.login) || url.includes(paths.checkout.login)) {
+        if (document.getElementsByClassName("reef-zds_modalContent")[0]) {
             global.waitForDOM(safe.login);
         } else if (url.includes(paths.cart)) {
             chrome.storage.local.get(["settings"], function (result) {
@@ -116,24 +124,36 @@ const safe = {
         });
     },
     login() {
-        chrome.storage.local.get(["websites"], function (result) {
-            if (result.websites.solebox.profile) {
-                const emailElement = document.getElementById(
-                        "dwfrm_profile_customer_email"
-                    ),
-                    passwordElement = document.getElementById(
-                        "dwfrm_profile_login_password"
-                    ),
-                    loginButtonElement = document.getElementsByClassName(
-                        "f-button f-button--medium f-button--primary f-button--full-width js-submit"
-                    )[0];
-
-                emailElement.value = result.websites.solebox.profile.email;
-                passwordElement.value =
-                    result.websites.solebox.profile.password;
-                loginButtonElement.click();
+        const waitForLoginPopup = setInterval(function () {
+            if (document.getElementsByClassName("reef-zds_modalContent")[0]) {
+                chrome.storage.local.get(["websites"], function (result) {
+                    if (result.websites.zalando.profile) {
+                        console.log(result.websites.zalando.profile);
+                        const emailElement = document.querySelector(
+                                '[name="login.email"]'
+                            ),
+                            passwordElement = document.querySelector(
+                                '[name="login.password"]'
+                            ),
+                            loginButtonElement = document.querySelector(
+                                '[data-testid="login_button"]'
+                            );
+                        setInterval(function () {
+                            emailElement.value =
+                                result.websites.zalando.profile.email;
+                            passwordElement.value =
+                                result.websites.zalando.profile.password;
+                        }, 200);
+                        // emailElement.value =
+                        //     result.websites.zalando.profile.email;
+                        // passwordElement.value =
+                        //     result.websites.zalando.profile.password;
+                        // loginButtonElement.click();
+                    }
+                });
+                clearInterval(waitForLoginPopup);
             }
-        });
+        }, 200);
     },
     product: {
         check404() {
@@ -186,22 +206,9 @@ const safe = {
                         );
                     });
                     chrome.storage.local.get(["websites"], function (result) {
-                        const sizes = result.websites.solebox.sizes;
+                        const sizes = result.websites.zalando.sizes;
                         if (safe.product.sizes.available.list.length > 0) {
-                            if (typeof sizes === "string") {
-                                if (sizes.toLowerCase() === "random") {
-                                    const randomIndex = Math.round(
-                                        Math.random() *
-                                            (safe.product.sizes.available.list
-                                                .length -
-                                                1)
-                                    );
-                                    safe.product.sizes.available.list[
-                                        randomIndex
-                                    ].click();
-                                }
-                                safe.product.addToCart("safe");
-                            } else if (!sizes.length > 0) {
+                            if (!sizes.length > 0) {
                                 ("No preferred sizes detected, trying to select a random one.");
                                 safe.product.sizes.available.list[0].click();
                                 safe.product.addToCart("safe");
@@ -245,7 +252,7 @@ const safe = {
             chrome.runtime.onMessage.addListener(
                 (message, sender, sendResponse) => {
                     if (
-                        message.request.url.includes("solebox.com") &&
+                        message.request.url.includes("zalando.com") &&
                         message.request.url.includes("add-product") &&
                         message.request.statusCode < 400
                     ) {
@@ -309,7 +316,7 @@ const safe = {
             chrome.runtime.onMessage.addListener(
                 (message, sender, sendResponse) => {
                     if (
-                        message.request.url.includes("solebox.com") &&
+                        message.request.url.includes("zalando.com") &&
                         message.request.url.includes("shipping") &&
                         message.request.statusCode < 400
                     ) {
@@ -341,7 +348,7 @@ const safe = {
                     .click();
             } else {
                 chrome.torage.local.get(["profiles"], function (result) {
-                    const selectedProfile = result.websites.solebox.profile;
+                    const selectedProfile = result.websites.zalando.profile;
                     document.querySelectorAll('[data-value="Herr"]')[0].click();
                     document.getElementById(
                         "dwfrm_shipping_shippingAddress_addressFields_firstName"
@@ -497,31 +504,36 @@ const requests = {
             `%cHyperionScripts - Logging in...`,
             "color: rgb(206, 182, 102); font-size: 12px"
         );
-        const CSRFtoken = document.querySelector("[name='csrf_token']").value;
-        const ID = document.querySelectorAll("[data-value]")[0].dataset.id,
-            value = document.querySelectorAll("[data-value]")[0].dataset.value;
         chrome.storage.local.get(["websites", "settings"], function (result) {
-            fetch(
-                "https://www.solebox.com/en_ES/authentication?rurl=1&format=ajax",
-                {
-                    headers: {
-                        accept: "application/json, text/javascript, */*; q=0.01",
-                        "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-                        "content-type":
-                            "application/x-www-form-urlencoded; charset=UTF-8",
-                        "sec-fetch-dest": "empty",
-                        "sec-fetch-mode": "cors",
-                        "sec-fetch-site": "same-origin",
-                        "x-requested-with": "XMLHttpRequest",
-                    },
-                    referrer: location.toString(),
-                    referrerPolicy: "strict-origin-when-cross-origin",
-                    body: `${ID}=${value}&dwfrm_profile_customer_email=${result.websites.solebox.profile.email}&dwfrm_profile_login_password=${result.websites.solebox.profile.password}&csrf_token=${CSRFtoken}`,
-                    method: "POST",
-                    mode: "cors",
-                    credentials: "include",
-                }
-            )
+            fetch("https://www.zalando.es/api/reef/login", {
+                headers: {
+                    accept: "application/json",
+                    "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+                    "content-type": "application/json",
+                    dpr: "2",
+                    "sec-ch-ua":
+                        '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
+                    "sec-ch-ua-mobile": "?0",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "same-origin",
+                    "viewport-width": "757",
+                    "x-flow-id": "Sh0d7svnECv50Xd0",
+                    "x-xsrf-token":
+                        "AAAAAPW8PVCVzIvoZN55xEVcwQempIQIgbE-nIoudWlbwFUt6JXMO7gH9z5NrSj-I4G02R7WPz71gXc0j-BOJJ5lvOU8AqGERVyck7gnaCAIt1FuLpgJQ7HAy_aUxrD0I430Cinh-HJ7kw-zNCUEmvM=",
+                    "x-zalando-client-id":
+                        "0ecf16e6-55d9-4242-bd96-52e4b1ba6c58",
+                    "x-zalando-render-page-uri": "/mujer-home/",
+                    "x-zalando-request-uri": "/mujer-home/",
+                    "x-zalando-toggle-label": "THE_LABEL_IS_ENABLED",
+                },
+                referrer: location.toString(),
+                referrerPolicy: "strict-origin-when-cross-origin",
+                body: `{"username":"${result.websites.zalando.profile.email}","password":"${result.websites.zalando.profile.password}","wnaMode":"modal"}`,
+                method: "POST",
+                mode: "cors",
+                credentials: "include",
+            })
                 .then((response) => response.json())
                 .then((data) => {
                     if (data.success === true) {
@@ -604,23 +616,10 @@ const requests = {
                     chrome.storage.local.get(["websites"], function (result) {
                         const sizes = result.websites.solebox.sizes;
                         if (safe.product.sizes.available.list.length > 0) {
-                            if (typeof sizes === "string") {
-                                if (sizes.toLowerCase() === "random") {
-                                    const randomIndex = Math.round(
-                                        Math.random() *
-                                            (safe.product.sizes.available.list
-                                                .length -
-                                                1)
-                                    );
-                                    safe.product.sizes.available.list[
-                                        randomIndex
-                                    ].click();
-                                    // safe.product.addToCart("requests");
-                                }
-                            } else if (!sizes.length > 0) {
+                            if (!sizes.length > 0) {
                                 ("No preferred sizes detected, trying to select a random one.");
                                 safe.product.sizes.available.list[0].click();
-                                // safe.product.addToCart("requests");
+                                safe.product.addToCart("requests");
                             } else {
                                 let success = false;
                                 sizes.forEach((size) => {
@@ -650,30 +649,32 @@ const requests = {
                                 if (success === false) {
                                     safe.product.sizes.available.list[0].click();
                                 }
-                            }
-                            const waitForSizePid = setInterval(function () {
-                                if (
-                                    document
-                                        .getElementsByClassName(
-                                            "f-pdp-button f-pdp-button--active js-btn-add-to-cart"
-                                        )[0]
-                                        .getAttribute("data-pid").length > 10
-                                ) {
-                                    clearInterval(waitForSizePid);
-                                    requests.product.addToCart(
+
+                                const waitForSizePid = setInterval(function () {
+                                    if (
                                         document
                                             .getElementsByClassName(
                                                 "f-pdp-button f-pdp-button--active js-btn-add-to-cart"
                                             )[0]
-                                            .getAttribute("data-pid")
-                                    );
-                                }
-                            }, 300);
-                            console.log(
-                                `%cHyperionScripts - %cSuccessfully selected size!`,
-                                "color: rgb(206, 182, 102); font-size: 12px",
-                                "color: rgb(100, 200, 0); font-size: 12px"
-                            );
+                                            .getAttribute("data-pid").length >
+                                        10
+                                    ) {
+                                        clearInterval(waitForSizePid);
+                                        requests.product.addToCart(
+                                            document
+                                                .getElementsByClassName(
+                                                    "f-pdp-button f-pdp-button--active js-btn-add-to-cart"
+                                                )[0]
+                                                .getAttribute("data-pid")
+                                        );
+                                    }
+                                }, 300);
+                                console.log(
+                                    `%cHyperionScripts - %cSuccessfully selected size!`,
+                                    "color: rgb(206, 182, 102); font-size: 12px",
+                                    "color: rgb(100, 200, 0); font-size: 12px"
+                                );
+                            }
                         }
                     });
                 }

@@ -52,6 +52,11 @@
             "profile": {},
             "mode": "SAFE",
             "sizes": []
+        },
+        "zalando": {
+            "profile": {},
+            "mode": "SAFE",
+            "sizes": []
         }
     },
     "checkout": {
