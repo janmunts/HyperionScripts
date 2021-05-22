@@ -261,12 +261,18 @@ const safe = {
                 }
             );
             const ATCButtonClick = setInterval(function () {
-                document
-                    .getElementsByClassName(
+                if (
+                    !document.getElementsByClassName(
                         "f-pdp-button f-pdp-button--active js-btn-add-to-cart"
-                    )[0]
-                    .click();
-            }, 500);
+                    )[0].disabled
+                ) {
+                    document
+                        .getElementsByClassName(
+                            "f-pdp-button f-pdp-button--active js-btn-add-to-cart"
+                        )[0]
+                        .click();
+                }
+            }, 1000);
         },
     },
     cart: {
@@ -340,32 +346,37 @@ const safe = {
                     )[0]
                     .click();
             } else {
-                chrome.torage.local.get(["profiles"], function (result) {
-                    const selectedProfile = result.websites.solebox.profile;
-                    document.querySelectorAll('[data-value="Herr"]')[0].click();
-                    document.getElementById(
-                        "dwfrm_shipping_shippingAddress_addressFields_firstName"
-                    ).value = selectedProfile.name;
-                    document.getElementById(
-                        "dwfrm_shipping_shippingAddress_addressFields_lastName"
-                    ).value = selectedProfile.lastName;
-                    document.getElementById(
-                        "dwfrm_shipping_shippingAddress_addressFields_postalCode"
-                    ).value = selectedProfile.zipCode;
-                    document.getElementById(
-                        "dwfrm_shipping_shippingAddress_addressFields_city"
-                    ).value = selectedProfile.city;
-                    document.getElementById(
-                        "dwfrm_shipping_shippingAddress_addressFields_street"
-                    ).value = selectedProfile.street;
-                    document.getElementById(
-                        "dwfrm_shipping_shippingAddress_addressFields_suite"
-                    ).value = selectedProfile.streetNumber;
-                    getElementById("dwfrm_contact_email").value =
-                        selectedProfile.email;
-                    document.getElementById("dwfrm_contact_phone").value =
-                        selectedProfile.phone;
-                });
+                chrome.storage.local.get(
+                    ["profiles", "websites"],
+                    function (result) {
+                        const selectedProfile = result.websites.solebox.profile;
+                        document
+                            .querySelectorAll('[data-value="Herr"]')[0]
+                            .click();
+                        document.getElementById(
+                            "dwfrm_shipping_shippingAddress_addressFields_firstName"
+                        ).value = selectedProfile.name;
+                        document.getElementById(
+                            "dwfrm_shipping_shippingAddress_addressFields_lastName"
+                        ).value = selectedProfile.lastName;
+                        document.getElementById(
+                            "dwfrm_shipping_shippingAddress_addressFields_postalCode"
+                        ).value = selectedProfile.zipCode;
+                        document.getElementById(
+                            "dwfrm_shipping_shippingAddress_addressFields_city"
+                        ).value = selectedProfile.city;
+                        document.getElementById(
+                            "dwfrm_shipping_shippingAddress_addressFields_street"
+                        ).value = selectedProfile.street;
+                        document.getElementById(
+                            "dwfrm_shipping_shippingAddress_addressFields_suite"
+                        ).value = selectedProfile.streetNumber;
+                        getElementById("dwfrm_contact_email").value =
+                            selectedProfile.email;
+                        document.getElementById("dwfrm_contact_phone").value =
+                            selectedProfile.phone;
+                    }
+                );
             }
         },
         payment() {

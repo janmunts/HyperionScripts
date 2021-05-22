@@ -22,7 +22,7 @@
                 "https://www.snipes.be/*",
                 "https://www.snipes.es/*"
             ],
-            "js": ["snipes/main.js"]
+            "js": ["snipes/main2.js"]
         },
         {
             "matches": ["https://www.zalando.es/*"],

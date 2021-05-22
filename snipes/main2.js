@@ -112,7 +112,7 @@ const safe = {
                     .innerHTML.trim(),
                 size: document
                     .getElementsByClassName(
-                        "b-item-attribute b-item-attribute--size Size-"
+                        `b-item-attribute b-item-attribute--${safe.sizeAttrClassname}`
                     )[0]
                     .getElementsByClassName("t-checkout-attr-value")[0]
                     .innerHTML,
@@ -171,9 +171,8 @@ const safe = {
             },
             soldOut: [],
             select() {
-                const sizeQuerySelectorValues = document.querySelectorAll(
-                    "[data-attr-value]"
-                );
+                const sizeQuerySelectorValues =
+                    document.querySelectorAll("[data-attr-value]");
                 sizeQuerySelectorValues.forEach((size) => {
                     if (size.className.includes("b-size-value")) {
                         safe.product.sizes.list.push(size);
@@ -230,7 +229,8 @@ const safe = {
                                                     ) === size.toString()
                                                 ) {
                                                     sizeElement.click();
-                                                    safe.product.sizes.selectedNumber = size;
+                                                    safe.product.sizes.selectedNumber =
+                                                        size;
                                                     success = true;
                                                     return;
                                                 }
@@ -278,9 +278,8 @@ const safe = {
     },
     cart: {
         deleteItem() {
-            const deleteItemButtonElement = document.getElementsByClassName(
-                "i-trash"
-            )[0];
+            const deleteItemButtonElement =
+                document.getElementsByClassName("i-trash")[0];
             const deleteConfirmationButton = document.getElementsByClassName(
                 "f-cart-remove-btn js-remove-confirmation-action f-button f-button--primary"
             )[0];
@@ -632,9 +631,8 @@ const requests = {
                     `%cHyperionScripts - Selecting sizes...`,
                     "color: rgb(206, 182, 102); font-size: 12px"
                 );
-                const sizeQuerySelectorValues = document.querySelectorAll(
-                    "[data-attr-value]"
-                );
+                const sizeQuerySelectorValues =
+                    document.querySelectorAll("[data-attr-value]");
                 sizeQuerySelectorValues.forEach((size) => {
                     if (size.className.includes("b-size-value")) {
                         safe.product.sizes.list.push(size);
@@ -691,7 +689,8 @@ const requests = {
                                                     ) === size.toString()
                                                 ) {
                                                     sizeElement.click();
-                                                    safe.product.sizes.selectedNumber = size;
+                                                    safe.product.sizes.selectedNumber =
+                                                        size;
                                                     success = true;
                                                     return;
                                                 }
@@ -762,8 +761,7 @@ const requests = {
                     "https://www.snipes.es/on/demandware.store/Sites-snse-SOUTH-Site/es_ES/Cart-AddProduct?format=ajax",
                     {
                         headers: {
-                            accept:
-                                "application/json, text/javascript, */*; q=0.01",
+                            accept: "application/json, text/javascript, */*; q=0.01",
                             "accept-language": "en,ca;q=0.9,es;q=0.8",
                             "content-type":
                                 "application/x-www-form-urlencoded; charset=UTF-8",
@@ -807,8 +805,7 @@ const requests = {
                 `https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/Cart-RemoveProductLineItem?format=ajax&pid=0190033300000010&uuid=${uuid}`,
                 {
                     headers: {
-                        accept:
-                            "application/json, text/javascript, */*; q=0.01",
+                        accept: "application/json, text/javascript, */*; q=0.01",
                         "accept-language": "en,ca;q=0.9,es;q=0.8",
                         "content-type": "application/json",
                         "sec-ch-ua":
@@ -869,8 +866,7 @@ const requests = {
                     `https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SelectShippingMethod?format=ajax`,
                     {
                         headers: {
-                            accept:
-                                "application/json, text/javascript, */*; q=0.01",
+                            accept: "application/json, text/javascript, */*; q=0.01",
                             "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
                             "content-type":
                                 "application/x-www-form-urlencoded; charset=UTF-8",
@@ -965,8 +961,7 @@ const requests = {
                         `https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutShippingServices-SubmitShipping?format=ajax`,
                         {
                             headers: {
-                                accept:
-                                    "application/json, text/javascript, */*; q=0.01",
+                                accept: "application/json, text/javascript, */*; q=0.01",
                                 "accept-language": "en,ca;q=0.9,es;q=0.8",
                                 "content-type":
                                     "application/x-www-form-urlencoded; charset=UTF-8",
@@ -1048,8 +1043,7 @@ const requests = {
                     `https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutServices-SubmitPayment?format=ajax`,
                     {
                         headers: {
-                            accept:
-                                "application/json, text/javascript, */*; q=0.01",
+                            accept: "application/json, text/javascript, */*; q=0.01",
                             "accept-language": "en,ca;q=0.9,es;q=0.8",
                             "content-type":
                                 "application/x-www-form-urlencoded; charset=UTF-8",
@@ -1095,8 +1089,7 @@ const requests = {
                     `https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/CheckoutServices-PlaceOrder?format=ajax`,
                     {
                         headers: {
-                            accept:
-                                "application/json, text/javascript, */*; q=0.01",
+                            accept: "application/json, text/javascript, */*; q=0.01",
                             "accept-language": "en,ca;q=0.9,es;q=0.8",
                             "content-type":
                                 "application/x-www-form-urlencoded; charset=UTF-8",

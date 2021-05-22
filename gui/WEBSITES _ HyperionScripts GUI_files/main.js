@@ -7,6 +7,7 @@ function loadProfileList() {
                 document.getElementById("snipes-profile-select"),
                 document.getElementById("zalando-profile-select"),
             ];
+
             result.profiles.list.forEach((profile) => {
                 profileElements.forEach(function (element) {
                     var option = document.createElement("option");

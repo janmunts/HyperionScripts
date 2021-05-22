@@ -209,7 +209,7 @@ const safe = {
                         );
                     });
                     chrome.storage.local.get(["websites"], function (result) {
-                        const sizes = result.websites.snipes.sizes;
+                        const sizes = result.websites.solebox.sizes;
                         if (safe.product.sizes.available.list.length > 0) {
                             if (typeof sizes === "string") {
                                 if (sizes.toLowerCase() === "random") {

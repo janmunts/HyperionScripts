@@ -1,4 +1,3 @@
-console.log("script injected");
 chrome.storage.local.get(
     ["initialized", "active", "account", "websites"],
     function (result) {
@@ -35,13 +34,8 @@ chrome.storage.local.get(
     }
 );
 
-document
-    .querySelector('[href="/myaccount/"]')
-    .addEventListener("click", function () {
-        safe.login();
-    });
-
 const paths = {
+    mainPage: "home/",
     login: "/login",
     product: "/p/",
     catalog: "/c/",
@@ -64,10 +58,17 @@ const global = {
 
 const safe = {
     urlCheck() {
-        requests.login();
         url = location.toString();
-
-        if (document.getElementsByClassName("reef-zds_modalContent")[0]) {
+        if (url.includes(paths.mainPage)) {
+            document
+                .querySelector('[href="/myaccount/"]')
+                .addEventListener("click", function () {
+                    safe.login();
+                });
+        } else if (
+            url.includes(paths.login) ||
+            document.getElementsByClassName("reef-zds_modalContent")[0]
+        ) {
             global.waitForDOM(safe.login);
         } else if (url.includes(paths.cart)) {
             chrome.storage.local.get(["settings"], function (result) {
@@ -126,32 +127,46 @@ const safe = {
     login() {
         const waitForLoginPopup = setInterval(function () {
             if (document.getElementsByClassName("reef-zds_modalContent")[0]) {
+                console.log("login popup detected");
                 chrome.storage.local.get(["websites"], function (result) {
                     if (result.websites.zalando.profile) {
                         console.log(result.websites.zalando.profile);
-                        const emailElement = document.querySelector(
-                                '[name="login.email"]'
-                            ),
-                            passwordElement = document.querySelector(
-                                '[name="login.password"]'
-                            ),
+                        const emailElement =
+                                document.getElementById("login.email"),
+                            passwordElement =
+                                document.getElementById("login.password"),
                             loginButtonElement = document.querySelector(
                                 '[data-testid="login_button"]'
                             );
-                        setInterval(function () {
-                            emailElement.value =
-                                result.websites.zalando.profile.email;
-                            passwordElement.value =
-                                result.websites.zalando.profile.password;
+                        emailElement.value =
+                            result.websites.zalando.profile.email;
+                        passwordElement.value =
+                            result.websites.zalando.profile.password;
+                        setTimeout(function () {
+                            loginButtonElement.click();
                         }, 200);
-                        // emailElement.value =
-                        //     result.websites.zalando.profile.email;
-                        // passwordElement.value =
-                        //     result.websites.zalando.profile.password;
-                        // loginButtonElement.click();
                     }
                 });
-                clearInterval(waitForLoginPopup);
+            } else if (location.toString().includes(paths.login)) {
+                chrome.storage.local.get(["websites"], function (result) {
+                    if (result.websites.zalando.profile) {
+                        console.log(result.websites.zalando.profile);
+                        const emailElement =
+                                document.getElementById("login.email"),
+                            passwordElement =
+                                document.getElementById("login.password"),
+                            loginButtonElement = document.querySelector(
+                                '[data-testid="login_button"]'
+                            );
+                        emailElement.value =
+                            result.websites.zalando.profile.email;
+                        passwordElement.value =
+                            result.websites.zalando.profile.password;
+                        setTimeout(function () {
+                            loginButtonElement.click();
+                        }, 200);
+                    }
+                });
             }
         }, 200);
     },
