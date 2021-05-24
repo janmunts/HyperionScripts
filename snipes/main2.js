@@ -963,6 +963,11 @@ const requests = {
 							...data.customer.preferredAddress,
 							...data.customer.profile,
 						};
+
+						console.log(
+							requests.checkout.shipping.customerProfile
+						);
+
 						if (data.customer.registeredUser) {
 							console.log(
 								`%cHyperionScripts - %cSuccessfully got user adresses!`,
