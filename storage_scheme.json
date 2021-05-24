@@ -1,77 +1,81 @@
 {
-    "initialized": true,
-    "active": true,
-    "account": {
-        "discordAuth": "undefined",
-        "discordUsername": "undefined",
-        "discordID": "undefined",
-        "inServer": "undefined",
-        "requiredRole": "undefined"
-    },
-    "settings": {
-        "webhook": {
-            "url": ""
-        },
-        "features": {
-            "autoLogin": { "solebox": false, "snipes": false },
-            "preCart": {
-                "genareted": false,
-                "generating": false,
-                "profile": "",
-                "link": ""
-            },
-            "theme": "light"
-        }
-    },
-    "profiles": {
-        "selected": "none",
-        "list": [
-            {
-                "profileName": "",
-                "country": "",
-                "email": "",
-                "password": "",
-                "title": "",
-                "name": "",
-                "lastName": "",
-                "zipCode": "",
-                "city": "",
-                "adress": "",
-                "streetNumber": "",
-                "phone": ""
-            }
-        ]
-    },
-    "websites": {
-        "solebox": {
-            "profile": {},
-            "mode": "SAFE",
-            "sizes": []
-        },
-        "snipes": {
-            "profile": {},
-            "mode": "SAFE",
-            "sizes": []
-        },
-        "zalando": {
-            "profile": {},
-            "mode": "SAFE",
-            "sizes": []
-        }
-    },
-    "checkout": {
-        "lastCheckout": {
-            "brand": "",
-            "size": "",
-            "model": "",
-            "website": "",
-            "price": "",
-            "user": "",
-            "imageURL": "",
-            "payPalURL": "",
-            "webhookMessageSent": false
-        },
-        "history": [{}, {}],
-        "totalCheckouts": 10
-    }
+	"initialized": true,
+	"active": true,
+	"account": {
+		"discordAuth": "undefined",
+		"discordUsername": "undefined",
+		"discordID": "undefined",
+		"inServer": "undefined",
+		"requiredRole": "undefined"
+	},
+	"settings": {
+		"webhook": {
+			"url": ""
+		},
+		"features": {
+			"autoLogin": { "solebox": false, "snipes": false },
+			"preCart": {
+				"genareted": false,
+				"generating": false,
+				"profile": "",
+				"link": "",
+				"lastGenerated": {
+					"solebox": 0,
+					"snipes": 0
+				}
+			},
+			"theme": "light"
+		}
+	},
+	"profiles": {
+		"selected": "none",
+		"list": [
+			{
+				"profileName": "",
+				"country": "",
+				"email": "",
+				"password": "",
+				"title": "",
+				"name": "",
+				"lastName": "",
+				"zipCode": "",
+				"city": "",
+				"adress": "",
+				"streetNumber": "",
+				"phone": ""
+			}
+		]
+	},
+	"websites": {
+		"solebox": {
+			"profile": {},
+			"mode": "SAFE",
+			"sizes": []
+		},
+		"snipes": {
+			"profile": {},
+			"mode": "SAFE",
+			"sizes": []
+		},
+		"zalando": {
+			"profile": {},
+			"mode": "SAFE",
+			"sizes": []
+		}
+	},
+	"checkout": {
+		"lastCheckout": {
+			"brand": "",
+			"size": "",
+			"model": "",
+			"website": "",
+			"price": "",
+			"user": "",
+			"imageURL": "",
+			"payPalURL": "",
+			"webhookMessageSent": false
+		},
+		"history": [{}, {}],
+		"totalCheckouts": 10
+	}
 }
