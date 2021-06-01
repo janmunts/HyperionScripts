@@ -56,9 +56,14 @@ class publicWebhook {
 					value: product.mode,
 					inline: true,
 				},
+				{
+					name: "User :bust_in_silhouette:",
+					value: `||${product.discordUsername}||`,
+					inline: true,
+				},
 			]),
 			(this.footer = {
-				text: "HyperionScripts v0.1-beta",
+				text: "HyperionScripts v0.2-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),
@@ -118,7 +123,7 @@ class privateWebhook {
 				},
 			]),
 			(this.footer = {
-				text: "HyperionScripts v0.1-beta",
+				text: "HyperionScripts v0.2-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),

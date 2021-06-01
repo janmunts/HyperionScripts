@@ -483,7 +483,7 @@ const requests = {
 	urlCheck() {
 		url = location.toString();
 		if (url.includes(".html")) {
-			requests.product.sizes.getID();
+			requests.product.sizes.getID()
 		}
 		// if (url.includes(paths.login) || url.includes(paths.checkout.login)) {
 		// 	global.waitForDOM(requests.login);
@@ -631,6 +631,8 @@ const requests = {
 						.innerText.replace("<![CDATA[", "")
 						.slice(0, -3)
 				);
+
+				console.log(productData);
 
 				requests.product.sizes.data.all =
 					productData.model.articleInfo.units;

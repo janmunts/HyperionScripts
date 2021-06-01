@@ -83,37 +83,47 @@ const safe = {
 		}
 	},
 	saveItemInfo() {
-		chrome.storage.local.get(["checkout", "websites"], function (result) {
-			let checkoutFromStorage = result.checkout;
-			let currentProduct = {
-				brand: document
-					.getElementsByClassName("t-product-brand-name")[0]
-					.innerHTML.trim(),
-				size: document
-					.getElementsByClassName(
-						"b-item-attribute b-item-attribute--size Size-"
-					)[0]
-					.getElementsByClassName("t-checkout-attr-value")[0]
-					.innerHTML,
-				model: document
-					.getElementsByClassName("t-product-main-name")[0]
-					.innerHTML.trim(),
-				website: location.hostname.replace("www.", ""),
-				price: document
-					.getElementsByClassName("b-product-tile-price-item")[0]
-					.innerHTML.trim(),
-				user: document.getElementById("dwfrm_contact_email").value,
-				imageURL: document
-					.getElementsByClassName("b-dynamic_image_content")[0]
-					.getAttribute("data-src")
-					.trim(),
-				payPalURL: "",
-				mode: "SAFE",
-				webhookMessageSent: false,
-			};
-			checkoutFromStorage.lastCheckout = currentProduct;
-			chrome.storage.local.set({ checkout: checkoutFromStorage });
-		});
+		chrome.storage.local.get(
+			["checkout", "websites", "account"],
+			function (result) {
+				let checkoutFromStorage = result.checkout;
+				let currentProduct = {
+					brand: document
+						.getElementsByClassName("t-product-brand-name")[0]
+						.innerHTML.trim(),
+					size: document
+						.getElementsByClassName(
+							"b-item-attribute b-item-attribute--size Size-"
+						)[0]
+						.getElementsByClassName(
+							"t-checkout-attr-value"
+						)[0].innerHTML,
+					model: document
+						.getElementsByClassName("t-product-main-name")[0]
+						.innerHTML.trim(),
+					website: location.hostname.replace("www.", ""),
+					price: document
+						.getElementsByClassName(
+							"b-product-tile-price-item"
+						)[0]
+						.innerHTML.trim(),
+					user: document.getElementById("dwfrm_contact_email")
+						.value,
+					discordUsername: result.account.discordUsername,
+					imageURL: document
+						.getElementsByClassName(
+							"b-dynamic_image_content"
+						)[0]
+						.getAttribute("data-src")
+						.trim(),
+					payPalURL: "",
+					mode: "SAFE",
+					webhookMessageSent: false,
+				};
+				checkoutFromStorage.lastCheckout = currentProduct;
+				chrome.storage.local.set({ checkout: checkoutFromStorage });
+			}
+		);
 	},
 	login() {
 		chrome.storage.local.get(["websites"], function (result) {
@@ -340,6 +350,13 @@ const safe = {
 			});
 		},
 		shipping() {
+			const waitForPlaceOrder = setInterval(function () {
+				if (location.toString().includes(paths.placeOrder)) {
+					safe.checkout.placeOrder();
+					clearInterval(waitForPlaceOrder);
+				}
+			}, 300);
+			
 			chrome.runtime.onMessage.addListener(
 				(message, sender, sendResponse) => {
 					if (
@@ -518,24 +535,28 @@ const requests = {
 		chrome.storage.local.get(["websites"], function (result) {
 			user = result.websites.solebox.profile.email;
 		});
-		chrome.storage.local.get(["checkout", "websites"], function (result) {
-			let checkoutFromStorage = result.checkout;
-			let currentProduct = {
-				brand: itemInfo.brand,
-				size: itemInfo.variant,
-				model: itemInfo.name,
-				website: location.hostname.replace("www.", ""),
-				price: itemInfo.price.replace(".", ",").concat(" €"),
-				user: user,
-				imageURL: itemImage,
-				itemPageURL: itemURL,
-				payPalURL: "",
-				mode: "REQUESTS",
-				webhookMessageSent: false,
-			};
-			checkoutFromStorage.lastCheckout = currentProduct;
-			chrome.storage.local.set({ checkout: checkoutFromStorage });
-		});
+		chrome.storage.local.get(
+			["checkout", "websites", "account"],
+			function (result) {
+				let checkoutFromStorage = result.checkout;
+				let currentProduct = {
+					brand: itemInfo.brand,
+					size: itemInfo.variant,
+					model: itemInfo.name,
+					website: location.hostname.replace("www.", ""),
+					price: itemInfo.price.replace(".", ",").concat(" €"),
+					user: user,
+					discordUsername: result.account.discordUsername,
+					imageURL: itemImage,
+					itemPageURL: itemURL,
+					payPalURL: "",
+					mode: "REQUESTS",
+					webhookMessageSent: false,
+				};
+				checkoutFromStorage.lastCheckout = currentProduct;
+				chrome.storage.local.set({ checkout: checkoutFromStorage });
+			}
+		);
 	},
 	login() {
 		console.log(
@@ -813,6 +834,12 @@ const requests = {
 								"color: rgb(100, 200, 0); font-size: 12px"
 							);
 							requests.checkout.shipping.process();
+						} else {
+							console.error(
+								`%cHyperionScripts - %cCould not add to cart: "${data.message}"`,
+								"color: rgb(206, 182, 102); font-size: 12px",
+								"color: rgb(206, 182, 102); font-size: 12px"
+							);
 						}
 					});
 			} else if (
