@@ -127,6 +127,7 @@ const safe = {
                         .innerHTML.trim(),
                     user: document.getElementById("dwfrm_contact_email").value,
                     discordUsername: result.account.discordUsername,
+                    discordID: result.account.discordID,
                     imageURL: document
                         .getElementsByClassName("b-dynamic_image_content")[0]
                         .getAttribute("data-src")
@@ -568,6 +569,7 @@ const requests = {
                     price: itemInfo.price.replace(".", ",").concat(" €"),
                     user: user,
                     discordUsername: result.account.discordUsername,
+                    discordID: result.account.discordID,
                     imageURL: itemImage,
                     itemPageURL: itemURL,
                     payPalURL: "",

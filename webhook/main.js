@@ -58,7 +58,7 @@ class publicWebhook {
 				},
 				{
 					name: "User :bust_in_silhouette:",
-					value: `||${product.discordUsername}||`,
+					value: `||<@${product.discordID}>||`,
 					inline: true,
 				},
 			]),
