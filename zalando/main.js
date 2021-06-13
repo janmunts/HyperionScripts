@@ -482,9 +482,24 @@ const safe = {
 const requests = {
 	urlCheck() {
 		url = location.toString();
-		if (url.includes(".html")) {
-			requests.product.sizes.getID()
-		}
+		requests.login();
+		// requests.product.addToCart(
+		// 	location
+		// 		.toString()
+		// 		.slice(
+		// 			location
+		// 				.toString()
+		// 				.lastIndexOf(
+		// 					"-",
+		// 					location.toString().lastIndexOf("-") - 1
+		// 				) + 1,
+		// 			location.toString().lastIndexOf(".")
+		// 		)
+		// );
+		requests.product.sizes.getID();
+		// if (url.includes(".html")) {
+		// 	requests.product.sizes.getID();
+		// }
 		// if (url.includes(paths.login) || url.includes(paths.checkout.login)) {
 		// 	global.waitForDOM(requests.login);
 		// } else if (url.includes(paths.cart)) {
@@ -555,6 +570,21 @@ const requests = {
 		});
 	},
 	login() {
+		var token = "";
+
+		var name = "frsx" + "=";
+		var decodedCookie = decodeURIComponent(document.cookie);
+		var ca = decodedCookie.split(";");
+		for (var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == " ") {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				token = c.substring(name.length, c.length);
+			}
+		}
+
 		console.log(
 			`%cHyperionScripts - Logging in...`,
 			"color: rgb(206, 182, 102); font-size: 12px"
@@ -574,8 +604,7 @@ const requests = {
 					"sec-fetch-site": "same-origin",
 					"viewport-width": "757",
 					"x-flow-id": "Sh0d7svnECv50Xd0",
-					"x-xsrf-token":
-						"AAAAAPW8PVCVzIvoZN55xEVcwQempIQIgbE-nIoudWlbwFUt6JXMO7gH9z5NrSj-I4G02R7WPz71gXc0j-BOJJ5lvOU8AqGERVyck7gnaCAIt1FuLpgJQ7HAy_aUxrD0I430Cinh-HJ7kw-zNCUEmvM=",
+					"x-xsrf-token": token,
 					"x-zalando-client-id":
 						"0ecf16e6-55d9-4242-bd96-52e4b1ba6c58",
 					"x-zalando-render-page-uri": "/mujer-home/",
@@ -591,32 +620,18 @@ const requests = {
 			})
 				.then((response) => response.json())
 				.then((data) => {
-					if (data.success === true) {
+					console.log(data);
+					if (!data.status) {
 						console.log(
 							`%cHyperionScripts - %cSuccessfully logged in!`,
 							"color: rgb(206, 182, 102); font-size: 12px",
 							"color: rgb(100, 200, 0); font-size: 12px"
 						);
-						if (
-							result.settings.features.autoLogin
-								.solebox === true
-						) {
-							chrome.storage.local.get(
-								["features"],
-								function (result) {
-									console.log(result);
-									const oldSettings =
-										result.settings;
-									oldSettings.features.autoLogin.solebox = false;
-									chrome.storage.local.set(
-										{ settings: oldSettings },
-										function () {
-											window.close();
-										}
-									);
-								}
-							);
-						}
+					} else {
+						console.error(
+							`%cHyperionScripts - Could not log in, check your login credentials and try again.`,
+							"color: rgb(206, 182, 102); font-size: 12px"
+						);
 					}
 				});
 		});
@@ -774,11 +789,19 @@ const requests = {
 			})
 				.then((response) => response.json())
 				.then((data) => {
-					console.log(
-						`%cHyperionScripts - %cSuccessfully added to cart!`,
-						"color: rgb(206, 182, 102); font-size: 12px",
-						"color: rgb(100, 200, 0); font-size: 12px"
-					);
+					console.log(data);
+					if (data[0].errors) {
+						console.error(
+							`%cHyperionScripts - Could not add to cat. Reason: "${data[0].errors[0].message}"`,
+							"color: rgb(206, 182, 102); font-size: 12px"
+						);
+					} else {
+						console.log(
+							`%cHyperionScripts - %cSuccessfully added to cart!`,
+							"color: rgb(206, 182, 102); font-size: 12px",
+							"color: rgb(100, 200, 0); font-size: 12px"
+						);
+					}
 				});
 		},
 	},
@@ -811,7 +834,97 @@ const requests = {
 	},
 	checkout: {
 		CSRFtoken: "",
-		pay() {
+		confirm() {
+			fetch("https://www.zalando.es/checkout/confirm", {
+				headers: {
+					accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+					"sec-fetch-dest": "document",
+					"sec-fetch-mode": "navigate",
+					"sec-fetch-site": "same-origin",
+					"sec-fetch-user": "?1",
+					"upgrade-insecure-requests": "1",
+				},
+				referrer: "https://www.zalando.es/cart",
+				referrerPolicy: "strict-origin-when-cross-origin",
+				body: null,
+				method: "GET",
+				mode: "cors",
+				credentials: "include",
+			});
+		},
+		address() {
+			fetch("https://www.zalando.es/checkout/address", {
+				headers: {
+					accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+					"sec-fetch-dest": "document",
+					"sec-fetch-mode": "navigate",
+					"sec-fetch-site": "same-origin",
+					"sec-fetch-user": "?1",
+					"upgrade-insecure-requests": "1",
+				},
+				referrer: "https://www.zalando.es/cart",
+				referrerPolicy: "strict-origin-when-cross-origin",
+				body: null,
+				method: "GET",
+				mode: "cors",
+				credentials: "include",
+			});
+		},
+		select() {
+			fetch("https://checkout.payment.zalando.com/selection", {
+				headers: {
+					accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+					"sec-fetch-dest": "document",
+					"sec-fetch-mode": "navigate",
+					"sec-fetch-site": "cross-site",
+					"sec-fetch-user": "?1",
+					"upgrade-insecure-requests": "1",
+				},
+				referrer: "https://www.zalando.es/",
+				referrerPolicy: "strict-origin-when-cross-origin",
+				body: null,
+				method: "GET",
+				mode: "cors",
+				credentials: "include",
+			});
+		},
+		paymentComplete() {
+			fetch("https://www.zalando.es/checkout/payment-complete", {
+				headers: {
+					accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+					"sec-fetch-dest": "document",
+					"sec-fetch-mode": "navigate",
+					"sec-fetch-site": "same-origin",
+					"sec-fetch-user": "?1",
+					"upgrade-insecure-requests": "1",
+				},
+				referrer: "https://www.zalando.es/",
+				referrerPolicy: "strict-origin-when-cross-origin",
+				body: null,
+				method: "GET",
+				mode: "cors",
+				credentials: "include",
+			});
+		},
+		buyNow() {
+			var token = "";
+
+			var name = "frsx" + "=";
+			var decodedCookie = decodeURIComponent(document.cookie);
+			var ca = decodedCookie.split(";");
+			for (var i = 0; i < ca.length; i++) {
+				var c = ca[i];
+				while (c.charAt(0) == " ") {
+					c = c.substring(1);
+				}
+				if (c.indexOf(name) == 0) {
+					token = c.substring(name.length, c.length);
+				}
+			}
 			fetch("https://www.zalando.es/api/checkout/buy-now", {
 				headers: {
 					accept: "application/json",
@@ -820,14 +933,58 @@ const requests = {
 					"sec-fetch-dest": "empty",
 					"sec-fetch-mode": "cors",
 					"sec-fetch-site": "same-origin",
-					"x-xsrf-token": "",
+					"x-xsrf-token": token,
 					"x-zalando-checkout-app": "web",
 					"x-zalando-footer-mode": "desktop",
 					"x-zalando-header-mode": "desktop",
 				},
 				referrer: "https://www.zalando.es/checkout/confirm",
 				referrerPolicy: "strict-origin-when-cross-origin",
-				body: '{"checkoutId":"M3Uw7LoA9-fG98MS3pR9EAJDnApJVgC4kvPmEtmOG70","eTag":"\\"86c7c0dd-0e27-4029-840a-a7986750a476\\""}',
+				body: '{"checkoutId":"M3Uw7LoA9-fG98MS3pR9EAJDnApJVgC4kvPmEtmOG70","eTag":"\\"da3a62ec-3576-442f-a096-751aa9f1f47f\\""}',
+				method: "POST",
+				mode: "cors",
+				credentials: "include",
+			});
+		},
+		updatePayment() {
+			fetch("https://www.zalando.es/api/checkout/update-payment", {
+				headers: {
+					accept: "*/*",
+					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+					"sec-fetch-dest": "empty",
+					"sec-fetch-mode": "cors",
+					"sec-fetch-site": "same-origin",
+					"x-xsrf-token":
+						"AAAAAEJd_ZvHJS2QxtJkDFW3zgUgbTqsA4dW1OM8zp6YtSLpGZa_S7KKXkaja9OFlmEltmK2aBAxaC6TdMsrMdZVOGpPb2K_lAuSEpYpYyWAZ_lS_fJx9Yrj8U7iWZX-l8wxtJSguiscLWAM6JJX6i4=",
+					"x-zalando-checkout-app": "web",
+					"x-zalando-footer-mode": "desktop",
+					"x-zalando-header-mode": "desktop",
+				},
+				referrer: "https://www.zalando.es/checkout/confirm",
+				referrerPolicy: "strict-origin-when-cross-origin",
+				body: null,
+				method: "GET",
+				mode: "cors",
+				credentials: "include",
+			});
+		},
+		selectPaymentMethod() {
+			fetch("https://checkout.payment.zalando.com/selection", {
+				headers: {
+					accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+					"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+					"cache-control": "max-age=0",
+					"content-type": "application/x-www-form-urlencoded",
+					"sec-fetch-dest": "document",
+					"sec-fetch-mode": "navigate",
+					"sec-fetch-site": "same-origin",
+					"sec-fetch-user": "?1",
+					"upgrade-insecure-requests": "1",
+				},
+				referrer:
+					"https://checkout.payment.zalando.com/selection?show=true",
+				referrerPolicy: "strict-origin-when-cross-origin",
+				body: "payz_credit_card_former_payment_method_id=-1&payz_selected_payment_method=CASH_ON_DELIVERY&iframe_funding_source_id=",
 				method: "POST",
 				mode: "cors",
 				credentials: "include",
