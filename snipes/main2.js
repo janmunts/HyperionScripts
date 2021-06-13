@@ -454,7 +454,14 @@ const safe = {
 		},
 		placeOrder() {
 			const placeOrderButtonClick = setInterval(function () {
-				document.querySelector("[value='place-order']").click();
+				if (
+					document.querySelector("[value='place-order']")
+						.disabled !== true
+				) {
+					document
+						.querySelector("[value='place-order']")
+						.click();
+				}
 			}, 500);
 
 			chrome.runtime.onMessage.addListener(
