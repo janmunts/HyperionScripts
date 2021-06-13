@@ -419,9 +419,11 @@ const safe = {
 						selectedProfile.phone;
 				});
 			}
-			if (location.toString().includes(paths.placeOrder)) {
-				safe.checkout.placeOrder();
-			}
+			setInterval(function () {
+				if (location.toString().includes(paths.placeOrder)) {
+					safe.checkout.placeOrder();
+				}
+			}, 300);
 		},
 		payment() {
 			document.getElementById("paymentMethod_Paypal").click();
@@ -448,9 +450,11 @@ const safe = {
 				}
 			);
 
-			if (location.toString().includes(paths.placeOrder)) {
-				safe.checkout.placeOrder();
-			}
+			setInterval(function () {
+				if (location.toString().includes(paths.placeOrder)) {
+					safe.checkout.placeOrder();
+				}
+			}, 300);
 		},
 		placeOrder() {
 			const placeOrderButtonClick = setInterval(function () {
@@ -462,7 +466,7 @@ const safe = {
 						.querySelector("[value='place-order']")
 						.click();
 				}
-			}, 500);
+			}, 1000);
 
 			chrome.runtime.onMessage.addListener(
 				(message, sender, sendResponse) => {
@@ -470,6 +474,7 @@ const safe = {
 						message.request.url.includes("snipes.") &&
 						message.request.url.includes("PlaceOrder")
 					) {
+						console.log(message.request.statusCode);
 						if (message.request.statusCode === 429) {
 							clearInterval(placeOrderButtonClick);
 							window.open(
