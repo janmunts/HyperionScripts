@@ -77,6 +77,7 @@ const safe = {
 		} else if (url.includes(paths.product)) {
 			global.waitForDOM(safe.product.check404);
 		} else if (url.includes(paths.checkout.path)) {
+			global.waitForDOM(safe.checkout.placeOrder);
 			global.waitForDOM(safe.saveItemInfo);
 			if (url.toString().includes(paths.checkout.shipping)) {
 				global.waitForDOM(safe.checkout.shipping);
@@ -419,13 +420,15 @@ const safe = {
 						selectedProfile.phone;
 				});
 			}
-			setInterval(function () {
-				if (location.toString().includes(paths.placeOrder)) {
-					safe.checkout.placeOrder();
-				}
-			}, 300);
 		},
 		payment() {
+			const waitForPlaceOrder = setInterval(function () {
+				if (location.toString().includes(paths.placeOrder)) {
+					safe.checkout.placeOrder();
+					clearInterval(waitForPlaceOrder);
+				}
+			}, 300);
+
 			document.getElementById("paymentMethod_Paypal").click();
 			document.getElementById("paymentMethod_Paypal").checked = true;
 
@@ -449,12 +452,6 @@ const safe = {
 					}
 				}
 			);
-
-			setInterval(function () {
-				if (location.toString().includes(paths.placeOrder)) {
-					safe.checkout.placeOrder();
-				}
-			}, 300);
 		},
 		placeOrder() {
 			const placeOrderButtonClick = setInterval(function () {
