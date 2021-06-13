@@ -471,9 +471,8 @@ const safe = {
 						message.request.url.includes("snipes.") &&
 						message.request.url.includes("PlaceOrder")
 					) {
-						console.log(message.request.statusCode);
+						clearInterval(placeOrderButtonClick);
 						if (message.request.statusCode === 429) {
-							clearInterval(placeOrderButtonClick);
 							window.open(
 								location
 									.toString()
