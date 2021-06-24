@@ -970,44 +970,23 @@ const requests = {
 							if (
 								requests.checkout.shipping.attempts < 3
 							) {
-								chrome.storage.local.get(
-									["settings"],
-									function (result) {
-										const oldSettings =
-											result.settings;
-										oldSettings.features.autoLogin.solebox = true;
-										chrome.storage.local.set(
-											{
-												settings:
-													oldSettings,
-											},
-											function () {
-												window.open(
+								window.open(
+									location
+										.toString()
+										.slice(
+											0,
+											location
+												.toString()
+												.indexOf(
+													"/",
 													location
 														.toString()
-														.slice(
-															0,
-															location
-																.toString()
-																.indexOf(
-																	"/",
-																	location
-																		.toString()
-																		.indexOf(
-																			"/",
-																			9
-																		) +
-																		1
-																)
-														) +
-														paths.login
-												);
-												requests.checkout
-													.shipping
-													.attempts++;
-											}
-										);
-									}
+														.indexOf(
+															"/",
+															9
+														) + 1
+												)
+										) + paths.login
 								);
 							}
 
