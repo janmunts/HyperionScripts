@@ -36,7 +36,7 @@ function sendTestWebhook() {
                 description:
                     "HyperionScripts sent a test message to check the provided webhook URL.",
                 footer: {
-                    text: "HyperionScripts v0.2-beta",
+                    text: "HyperionScripts v0.3-beta",
                     icon_url:
                         "https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
                 },

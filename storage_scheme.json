@@ -73,6 +73,7 @@
 			"user": "",
 			"imageURL": "",
 			"payPalURL": "",
+			"time": 0,
 			"webhookMessageSent": false
 		},
 		"history": [{}, {}],

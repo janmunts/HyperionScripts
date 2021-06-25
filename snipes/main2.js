@@ -24,8 +24,7 @@ chrome.storage.local.get(
 			} else {
 				console.error(
 					`%cHyperionScripts - Could not verify your account, go to settings to log in.`,
-					"color: rgb(206, 182, 102); font-size: 15px",
-					"color: rgb(206, 182, 102); font-size: 15px; font-weight: bold"
+					"color: rgb(206, 182, 102); font-size: 15px"
 				);
 			}
 		} else {
@@ -301,7 +300,6 @@ const safe = {
 				}
 			);
 			const ATCButtonClick = setInterval(function () {
-				console.log("clicking add to cart");
 				document
 					.getElementsByClassName(
 						"f-pdp-button f-pdp-button--active js-btn-add-to-cart"
@@ -594,7 +592,6 @@ const requests = {
 			.then((response) => response.json())
 			.then((data) => {
 				requests.checkout.CSRFtoken = data.csrf.token;
-				console.log(data.csrf.token);
 				callback();
 			});
 	},
@@ -676,7 +673,6 @@ const requests = {
 							chrome.storage.local.get(
 								["features"],
 								function (result) {
-									console.log(result);
 									const oldSettings =
 										result.settings;
 									oldSettings.settings.features.autoLogin.snipes = false;
@@ -694,7 +690,9 @@ const requests = {
 		});
 	},
 	product: {
+		time: { start: 0, finish: 0, total: 0 },
 		checkPID() {
+			requests.product.time.start = new Date();
 			if (
 				location
 					.toString()
@@ -703,7 +701,6 @@ const requests = {
 						location.toString().lastIndexOf(".")
 					).length > 15
 			) {
-				console.log("SIZE LINK");
 				requests.product.addToCart(
 					location
 						.toString()
@@ -713,7 +710,6 @@ const requests = {
 						)
 				);
 			} else {
-				console.log("NOT SIZE LINK");
 				requests.product.sizes.select();
 			}
 		},
@@ -741,7 +737,6 @@ const requests = {
 							.getAttribute("data-pid").length > 15
 					) {
 						clearInterval(waitForSizePid);
-						console.log("SIZE PID DETECTED IN BUTTON");
 						requests.product.addToCart(
 							document
 								.getElementsByClassName(
@@ -771,9 +766,6 @@ const requests = {
 						return;
 					}
 				});
-				// if (this.anySelected === true) {
-				// requests.product.addToCart("requests");
-				// }
 				safe.product.sizes.list.forEach((size) => {
 					if (
 						size.className.includes(
@@ -797,9 +789,6 @@ const requests = {
 					const sizes = result.websites.snipes.sizes;
 					if (safe.product.sizes.available.list.length > 0) {
 						if (!sizes.length > 0) {
-							console.log(
-								"No preferred sizes detected, trying to select a random one."
-							);
 							safe.product.sizes.available.list[0].click();
 						} else {
 							let success = false;
@@ -847,9 +836,6 @@ const requests = {
 				`%cHyperionScripts - Adding to cart...`,
 				"color: rgb(206, 182, 102); font-size: 12px"
 			);
-
-			console.log(pid);
-
 			fetch(
 				`https://www.snipes${requests.regionData.snipesRegion}/on/demandware.store/${requests.regionData.dwRegion}/${requests.regionData.snipesRegion2}/Cart-AddProduct?format=ajax`,
 				{
@@ -876,13 +862,16 @@ const requests = {
 			)
 				.then((response) => response.json())
 				.then((data) => {
-					console.log(data);
 					if (data.error === false) {
 						console.log(
 							`%cHyperionScripts - %cSuccessfully added to cart!`,
 							"color: rgb(206, 182, 102); font-size: 12px",
 							"color: rgb(100, 200, 0); font-size: 12px"
 						);
+						requests.product.time.finish = new Date();
+						requests.product.time.total =
+							requests.product.time.finish -
+							requests.product.time.start;
 						requests.checkout.shipping.process();
 					} else {
 						console.error(
@@ -894,35 +883,11 @@ const requests = {
 				});
 		},
 	},
-	cart: {
-		deleteItem(pid) {
-			fetch(
-				`https://www.solebox.com/on/demandware.store/Sites-solebox-Site/de_DE/Cart-RemoveProductLineItem?format=ajax&pid=0190033300000010&uuid=${uuid}`,
-				{
-					headers: {
-						accept: "application/json, text/javascript, */*; q=0.01",
-						"accept-language": "en,ca;q=0.9,es;q=0.8",
-						"content-type": "application/json",
-						"sec-ch-ua":
-							'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
-						"sec-ch-ua-mobile": "?0",
-						"sec-fetch-dest": "empty",
-						"sec-fetch-mode": "cors",
-						"sec-fetch-site": "same-origin",
-						"x-requested-with": "XMLHttpRequest",
-					},
-					referrer: "https://www.solebox.com/de_DE/cart",
-					referrerPolicy: "strict-origin-when-cross-origin",
-					body: null,
-					method: "GET",
-					mode: "cors",
-					credentials: "include",
-				}
-			);
-		},
-	},
+	cart: {},
 	checkout: {
 		CSRFtoken: "",
+		retryAttempts: 2,
+		time: { start: 0, finish: 0, total: 0 },
 		fullProcess() {},
 		redirect() {
 			chrome.storage.local.get(["settings"], function (result) {
@@ -957,6 +922,7 @@ const requests = {
 				requests.generateCSRF(
 					requests.checkout.shipping.getAddressID
 				);
+				requests.checkout.time.start = new Date();
 			},
 			getAddressID() {
 				console.log(
@@ -987,16 +953,10 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-						console.log(data);
 						requests.checkout.shipping.customerProfile = {
 							...data.customer.preferredAddress,
 							...data.customer.profile,
 						};
-
-						console.log(
-							requests.checkout.shipping.customerProfile
-						);
-
 						if (data.customer.registeredUser) {
 							console.log(
 								`%cHyperionScripts - %cSuccessfully got user adresses!`,
@@ -1010,42 +970,39 @@ const requests = {
 							requests.checkout.shipping.submit();
 							requests.checkout.shipping.attempts = 0;
 						} else {
-							console.error(
-								`%cHyperionScripts - User not logged in! Retrying in 3 seconds.`,
-								"color: rgb(206, 182, 102); font-size: 12px"
-							);
-
 							if (
-								requests.checkout.shipping.attempts < 3
-							) {
-								window.open(
-									location
-										.toString()
-										.slice(
-											0,
-											location
-												.toString()
-												.indexOf(
-													"/",
-													location
-														.toString()
-														.indexOf(
-															"snipes."
-														)
-												)
-										) + paths.login
-								);
-							}
-							if (
-								requests.checkout.shipping.attempts < 3
+								requests.checkout.shipping.attempts <
+								requests.checkout.retryAttempts
 							) {
 								requests.checkout.shipping.attempts++;
+								if (
+									requests.checkout.shipping
+										.attempts === 1
+								) {
+									window.open(
+										location
+											.toString()
+											.slice(
+												0,
+												location
+													.toString()
+													.indexOf(
+														"/",
+														location
+															.toString()
+															.indexOf(
+																"snipes."
+															)
+													)
+											) + paths.login
+									);
+								}
 								console.error(
-									`%cHyperionScripts - User not logged in! Retrying in 3 seconds... Try ${requests.checkout.shipping.attempts} of 3.`,
+									`%cHyperionScripts - User not logged in! Retrying in 3 seconds... Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
 								setTimeout(function () {
-									requests.checkout.shipping.getAddressID();
+									requests.checkout.shipping.process();
 								}, 3000);
 							} else {
 								console.error(
@@ -1186,19 +1143,22 @@ const requests = {
 					)
 						.then((response) => response.json())
 						.then((data) => {
-							console.log(data);
 							if (
 								data.error === true ||
 								data.errorMessage
 							) {
 								if (
 									requests.checkout.shipping
-										.attempts < 3
+										.attempts <
+										requests.checkout
+											.retryAttempts &&
+									data.errorMessage !==
+										"Too many requests"
 								) {
 									requests.checkout.shipping
 										.attempts++;
 									console.error(
-										`%cHyperionScripts - Could not submit shipping. Retrying in 3 seconds... Try ${requests.checkout.shipping.attempts} of 3.`,
+										`%cHyperionScripts - Could not submit shipping. Retrying in 3 seconds... Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
 										"color: rgb(206, 182, 102); font-size: 12px"
 									);
 									setTimeout(function () {
@@ -1257,7 +1217,6 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-						console.log(data);
 						if (!data.error) {
 							console.log(
 								`%cHyperionScripts - %cSuccessfully submitted payment!`,
@@ -1267,10 +1226,13 @@ const requests = {
 							requests.checkout.payment.submitted = true;
 							requests.checkout.placeOrder.submit();
 						} else {
-							if (requests.checkout.payment.attempts < 3) {
+							if (
+								requests.checkout.payment.attempts <
+								requests.checkout.retryAttempts
+							) {
 								requests.checkout.payment.attempts++;
 								console.error(
-									`%cHyperionScripts - Could not submit payment. Retrying in 3 seconds... Try ${requests.checkout.payment.attempts} of 3.`,
+									`%cHyperionScripts - Could not submit payment. Retrying in 3 seconds... Try ${requests.checkout.payment.attempts} of ${requests.checkout.retryAttempts}.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
 								setTimeout(function () {
@@ -1321,8 +1283,11 @@ const requests = {
 				)
 					.then((response) => response.json())
 					.then((data) => {
-						console.log(data);
 						if (!data.error && data.continueUrl) {
+							requests.checkout.time.finish = new Date();
+							requests.checkout.time.total =
+								requests.checkout.time.finish -
+								requests.checkout.time.start;
 							console.log(
 								`%cHyperionScripts - %cSuccessfully placed order!`,
 								"color: rgb(206, 182, 102); font-size: 12px",
@@ -1333,15 +1298,53 @@ const requests = {
 								"color: rgb(206, 182, 102); font-size: 12px",
 								"color: rgb(0, 156, 218); font-size: 12px"
 							);
-							window.open(data.continueUrl);
+							console.log(
+								`%cHyperionScripts - CHECKOUT DATA:\n-  ATC TIME: %c${
+									requests.product.time.total
+								}ms\n%c-  CHECKOUT TIME: %c${
+									requests.checkout.time.total
+								}ms\n%c-  TOTAL TIME: %c${
+									requests.product.time.total +
+									requests.checkout.time.total
+								}ms`,
+								"color: rgb(206, 182, 102); font-size: 12px",
+								"color: rgb(190, 41, 236); font-size: 12px",
+								"color: rgb(206, 182, 102); font-size: 12px",
+								"color: rgb(190, 41, 236); font-size: 12px",
+								"color: rgb(206, 182, 102); font-size: 12px",
+								"color: rgb(190, 41, 236); font-size: 12px"
+							);
+							chrome.storage.local.get(
+								["checkout", "websites"],
+								function (result) {
+									let checkoutFromStorage =
+										result.checkout;
+									checkoutFromStorage.lastCheckout.ATCtime =
+										requests.product.time.total;
+									checkoutFromStorage.lastCheckout.checkoutTime =
+										requests.checkout.time.total;
+
+									chrome.storage.local.set(
+										{
+											checkout:
+												checkoutFromStorage,
+										},
+										function () {
+											window.open(
+												data.continueUrl
+											);
+										}
+									);
+								}
+							);
 						} else {
 							if (
 								requests.checkout.placeOrder.attempts <
-								3
+								requests.checkout.retryAttempts
 							) {
 								requests.checkout.placeOrder.attempts++;
 								console.error(
-									`%cHyperionScripts - Could not place order. Retrying in 3 seconds... Try ${requests.checkout.placeOrder.attempts} of 3.`,
+									`%cHyperionScripts - Could not place order. Retrying in 3 seconds... Try ${requests.checkout.placeOrder.attempts} of ${requests.checkout.retryAttempts}.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
 								setTimeout(function () {
