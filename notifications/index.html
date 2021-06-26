@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<title>A Basic HTML5 Template</title>
+		<meta
+			name="description"
+			content="A simple HTML5 Template for new projects."
+		/>
+		<meta name="author" content="SitePoint" />
+
+		<link
+			href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+			rel="stylesheet"
+		/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+	</head>
+
+	<body>
+		<!-- your content here... -->
+		<script>
+			toastr.options.closeButton = true;
+			toastr.options.progressBar = true;
+			toastr.options.timeOut = 1500;
+
+			setInterval(function () {
+				toastr.success("Successfully logged in!");
+			}, 3000);
+		</script>
+	</body>
+</html>

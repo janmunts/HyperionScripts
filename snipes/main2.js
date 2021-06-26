@@ -9,6 +9,7 @@ chrome.storage.local.get(
 						"color: rgb(206, 182, 102); font-size: 15px",
 						"color: rgb(206, 182, 102); font-size: 15px; font-weight: bold"
 					);
+					global.notifications.inject();
 					if (result.websites.snipes.mode !== "OFF") {
 						if (result.websites.snipes.mode === "SAFE") {
 							safe.checkRegion();
@@ -26,6 +27,10 @@ chrome.storage.local.get(
 					`%cHyperionScripts - Could not verify your account, go to settings to log in.`,
 					"color: rgb(206, 182, 102); font-size: 15px"
 				);
+				global.notifications.send("error", {
+					title: "User not authenticated.",
+					content: "Go to the settings to tog in.",
+				});
 			}
 		} else {
 			console.error(
@@ -55,6 +60,110 @@ const paths = {
 const global = {
 	waitForDOM(callback, data) {
 		document.addEventListener("DOMContentLoaded", callback(data));
+	},
+	notifications: {
+		inject() {
+			var head = document.getElementsByTagName("head")[0];
+
+			var jqueryTag = document.createElement("script");
+			jqueryTag.type = "text/javascript";
+			jqueryTag.src =
+				"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js";
+			jqueryTag.onload = function () {
+				console.log("jquery loaded");
+				var toastrTag = document.createElement("script");
+				toastrTag.type = "text/javascript";
+				toastrTag.src =
+					"//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js";
+				toastrTag.onload = function () {
+					console.log("toastr loaded");
+					var body = document.getElementsByTagName("body")[0];
+
+					var script = document.createElement("script");
+					script.type = "text/javascript";
+
+					var scriptCode = document.createTextNode(
+						`toastr.options.closeButton = true; toastr.options.progressBar = true; toastr.options.timeOut = 3000; toastr.options.extendedTimeOut = 5000;`
+					);
+					script.appendChild(scriptCode);
+
+					body.appendChild(script);
+				};
+				head.appendChild(toastrTag);
+			};
+
+			var cssTag = document.createElement("link");
+			cssTag.rel = "stylesheet";
+			cssTag.href =
+				"//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css";
+
+			head.appendChild(jqueryTag);
+
+			head.appendChild(cssTag);
+		},
+		send(type, data) {
+			var script = document.createElement("script");
+			script.type = "text/javascript";
+
+			var scriptCode = "";
+
+			switch (type) {
+				case "success":
+					if (data.content) {
+						scriptCode = document.createTextNode(
+							`toastr.success("${data.content}", "${data.title}");`
+						);
+					} else {
+						scriptCode = document.createTextNode(
+							`toastr.success("${data.title}");`
+						);
+					}
+
+					break;
+				case "error":
+					if (data.content) {
+						scriptCode = document.createTextNode(
+							`toastr.error("${data.content}", "${data.title}", {timeOut: 5000});`
+						);
+					} else {
+						scriptCode = document.createTextNode(
+							`toastr.error("${data.title}", "", {timeOut: 5000});`
+						);
+					}
+
+					break;
+				case "warning":
+					if (data.content) {
+						scriptCode = document.createTextNode(
+							`toastr.warning("${data.content}", "${data.title}");`
+						);
+					} else {
+						scriptCode = document.createTextNode(
+							`toastr.warning("${data.title}");`
+						);
+					}
+
+					break;
+				case "info":
+					if (data.content) {
+						scriptCode = document.createTextNode(
+							`toastr.info("${data.title}", "", {onclick: function() { window.open("${data.content}")}, timeOut: 10000});`
+						);
+					} else {
+						break;
+					}
+					break;
+				case "clear":
+					// code block
+					break;
+				default:
+				// code block
+			}
+
+			script.appendChild(scriptCode);
+
+			document.body.appendChild(script);
+		},
 	},
 };
 
@@ -666,6 +775,9 @@ const requests = {
 							"color: rgb(206, 182, 102); font-size: 12px",
 							"color: rgb(100, 200, 0); font-size: 12px"
 						);
+						global.notifications.send("success", {
+							title: "Successfully logged in!",
+						});
 						if (
 							result.settings.features.autoLogin.snipes ===
 							true
@@ -675,7 +787,7 @@ const requests = {
 								function (result) {
 									const oldSettings =
 										result.settings;
-									oldSettings.settings.features.autoLogin.snipes = false;
+									oldSettings.features.autoLogin.snipes = false;
 									chrome.storage.local.set(
 										{ settings: oldSettings },
 										function () {
@@ -685,6 +797,10 @@ const requests = {
 								}
 							);
 						}
+					} else {
+						global.notifications.send("error", {
+							title: "Could not log in!",
+						});
 					}
 				});
 		});
@@ -868,6 +984,10 @@ const requests = {
 							"color: rgb(206, 182, 102); font-size: 12px",
 							"color: rgb(100, 200, 0); font-size: 12px"
 						);
+						global.notifications.send("success", {
+							title: "Successfully added to cart!",
+							content: `Product ID: ${pid}`,
+						});
 						requests.product.time.finish = new Date();
 						requests.product.time.total =
 							requests.product.time.finish -
@@ -879,6 +999,10 @@ const requests = {
 							"color: rgb(206, 182, 102); font-size: 12px",
 							"color: rgb(206, 182, 102); font-size: 12px"
 						);
+						global.notifications.send("error", {
+							title: "Could not add to cart.",
+							content: `Error: "${data.message}"`,
+						});
 					}
 				});
 		},
@@ -888,7 +1012,6 @@ const requests = {
 		CSRFtoken: "",
 		retryAttempts: 2,
 		time: { start: 0, finish: 0, total: 0 },
-		fullProcess() {},
 		redirect() {
 			chrome.storage.local.get(["settings"], function (result) {
 				if (result.settings.features.preCart.generated !== true) {
@@ -1001,6 +1124,10 @@ const requests = {
 									`%cHyperionScripts - User not logged in! Retrying in 3 seconds... Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
+								global.notifications.send("error", {
+									title: "User not logged in! Retrying in 3 seconds...",
+									content: `Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
+								});
 								setTimeout(function () {
 									requests.checkout.shipping.process();
 								}, 3000);
@@ -1009,6 +1136,10 @@ const requests = {
 									`%cHyperionScripts - Could not get user addresses. Reload the page to try again.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
+								global.notifications.send("error", {
+									title: "Could not get user addresses.",
+									content: `Reload the page to try again.`,
+								});
 							}
 						}
 
@@ -1161,6 +1292,13 @@ const requests = {
 										`%cHyperionScripts - Could not submit shipping. Retrying in 3 seconds... Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
 										"color: rgb(206, 182, 102); font-size: 12px"
 									);
+									global.notifications.send(
+										"error",
+										{
+											title: "Could not submit shipping. Retrying in 3 seconds...",
+											content: `Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
+										}
+									);
 									setTimeout(function () {
 										requests.checkout.shipping.submit();
 									}, 3000);
@@ -1169,6 +1307,13 @@ const requests = {
 										`%cHyperionScripts - Could not submit shipping. Reload the page to try again.`,
 										"color: rgb(206, 182, 102); font-size: 12px"
 									);
+									global.notifications.send(
+										"error",
+										{
+											title: "Could not submit shipping.",
+											content: "Reload the page to try again.",
+										}
+									);
 								}
 							} else {
 								console.log(
@@ -1176,6 +1321,9 @@ const requests = {
 									"color: rgb(206, 182, 102); font-size: 12px",
 									"color: rgb(100, 200, 0); font-size: 12px"
 								);
+								global.notifications.send("success", {
+									title: "Successfully submitted shipping!",
+								});
 								requests.checkout.shipping.submitted = true;
 								requests.checkout.payment.submit();
 							}
@@ -1223,6 +1371,9 @@ const requests = {
 								"color: rgb(206, 182, 102); font-size: 12px",
 								"color: rgb(100, 200, 0); font-size: 12px"
 							);
+							global.notifications.send("success", {
+								title: "Successfully submitted payment!",
+							});
 							requests.checkout.payment.submitted = true;
 							requests.checkout.placeOrder.submit();
 						} else {
@@ -1235,6 +1386,10 @@ const requests = {
 									`%cHyperionScripts - Could not submit payment. Retrying in 3 seconds... Try ${requests.checkout.payment.attempts} of ${requests.checkout.retryAttempts}.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
+								global.notifications.send("error", {
+									title: "Could not submit payment. Retrying in 3 seconds...",
+									content: `Try ${requests.checkout.payment.attempts} of ${requests.checkout.retryAttempts}.`,
+								});
 								setTimeout(function () {
 									requests.checkout.payment.submit();
 								}, 3000);
@@ -1243,6 +1398,10 @@ const requests = {
 									`%cHyperionScripts - Could not submit payment. Reload the page to try again.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
+								global.notifications.send("error", {
+									title: "Could not submit payment.",
+									content: "Reload the page to try again.",
+								});
 							}
 						}
 					});
@@ -1293,11 +1452,18 @@ const requests = {
 								"color: rgb(206, 182, 102); font-size: 12px",
 								"color: rgb(100, 200, 0); font-size: 12px"
 							);
+							global.notifications.send("success", {
+								title: "Successfully placed order!",
+							});
 							console.log(
 								`%cHyperionScripts - %cPayPal link:\n${data.continueUrl}`,
 								"color: rgb(206, 182, 102); font-size: 12px",
 								"color: rgb(0, 156, 218); font-size: 12px"
 							);
+							global.notifications.send("info", {
+								title: `Click here to open the PayPal link.`,
+								content: data.continueUrl,
+							});
 							console.log(
 								`%cHyperionScripts - CHECKOUT DATA:\n-  ATC TIME: %c${
 									requests.product.time.total
@@ -1330,9 +1496,9 @@ const requests = {
 												checkoutFromStorage,
 										},
 										function () {
-											window.open(
-												data.continueUrl
-											);
+											// window.open(
+											// 	data.continueUrl
+											// );
 										}
 									);
 								}
@@ -1347,6 +1513,10 @@ const requests = {
 									`%cHyperionScripts - Could not place order. Retrying in 3 seconds... Try ${requests.checkout.placeOrder.attempts} of ${requests.checkout.retryAttempts}.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
+								global.notifications.send("error", {
+									title: "Could not place order. Retrying in 3 seconds...",
+									content: `Try ${requests.checkout.placeOrder.attempts} of ${requests.checkout.retryAttempts}.`,
+								});
 								setTimeout(function () {
 									requests.checkout.placeOrder.submit();
 								}, 3000);
@@ -1355,6 +1525,10 @@ const requests = {
 									`%cHyperionScripts - Could not place order. Reload the page to try again.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
+								global.notifications.send("error", {
+									title: "Could not place order.",
+									content: "Reload the page to try again.",
+								});
 							}
 							if (
 								!requests.checkout.placeOrder.cartOpened
