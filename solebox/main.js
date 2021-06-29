@@ -854,15 +854,29 @@ const requests = {
 						safe.product.sizes.soldOut.push(size);
 					}
 				});
+
 				safe.product.sizes.available.list.forEach((size) => {
 					safe.product.sizes.available.numbers.push(
 						size.getAttribute("data-attr-value")
 					);
 				});
+
 				chrome.storage.local.get(["websites"], function (result) {
 					const sizes = result.websites.solebox.sizes;
 					if (safe.product.sizes.available.list.length > 0) {
-						if (!sizes.length > 0) {
+						if (typeof sizes === "string") {
+							if (sizes.toLowerCase() === "random") {
+								const randomIndex = Math.round(
+									Math.random() *
+										(safe.product.sizes.available
+											.list.length -
+											1)
+								);
+								safe.product.sizes.available.list[
+									randomIndex
+								].click();
+							}
+						} else if (!sizes.length > 0) {
 							safe.product.sizes.available.list[0].click();
 						} else {
 							let success = false;

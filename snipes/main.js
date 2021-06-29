@@ -363,27 +363,7 @@ const safe = {
 								safe.product.sizes.available.list
 									.length > 0
 							) {
-								if (typeof sizes === "string") {
-									if (
-										sizes.toLowerCase() ===
-										"random"
-									) {
-										const randomIndex =
-											Math.round(
-												Math.random() *
-													(safe.product
-														.sizes
-														.available
-														.list
-														.length -
-														1)
-											);
-										safe.product.sizes.available.list[
-											randomIndex
-										].click();
-									}
-									safe.product.addToCart("safe");
-								} else if (!sizes.length > 0) {
+								if (!sizes.length > 0) {
 									("No preferred sizes detected, trying to select a random one.");
 									safe.product.sizes.available.list[0].click();
 									safe.product.addToCart("safe");
@@ -1006,7 +986,19 @@ const requests = {
 				chrome.storage.local.get(["websites"], function (result) {
 					const sizes = result.websites.snipes.sizes;
 					if (safe.product.sizes.available.list.length > 0) {
-						if (!sizes.length > 0) {
+						if (typeof sizes === "string") {
+							if (sizes.toLowerCase() === "random") {
+								const randomIndex = Math.round(
+									Math.random() *
+										(safe.product.sizes.available
+											.list.length -
+											1)
+								);
+								safe.product.sizes.available.list[
+									randomIndex
+								].click();
+							}
+						} else if (!sizes.length > 0) {
 							safe.product.sizes.available.list[0].click();
 						} else {
 							let success = false;
