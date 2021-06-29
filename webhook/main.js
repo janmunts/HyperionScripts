@@ -16,7 +16,7 @@ function hexToDecimal(hex) {
 	return parseInt(hex.replace("#", ""), 16);
 }
 
-class publicWebhook {
+class requestsPublicWebhook {
 	constructor(product) {
 		(this.author = {
 			name: "",
@@ -86,7 +86,67 @@ class publicWebhook {
 	}
 }
 
-class privateWebhook {
+class safePublicWebhook {
+	constructor(product) {
+		(this.author = {
+			name: "",
+		}),
+			(this.title = ":zap: OH LOOK, THAT'S A CHECKOUT! :zap:"),
+			(this.url = product.itemPageURL),
+			(this.description =
+				"HyperionScripts user managed to checkout an item for one of our members!"),
+			(this.fields = [
+				{
+					name: "Brand :ticket:",
+					value: product.brand,
+					inline: true,
+				},
+				{
+					name: "Model :label:",
+					value: product.model,
+					inline: true,
+				},
+				{
+					name: "Size :straight_ruler:",
+					value: product.size,
+					inline: true,
+				},
+				{
+					name: "Website :globe_with_meridians:",
+					value: product.website,
+					inline: true,
+				},
+				{
+					name: "Price :moneybag:",
+					value: product.price,
+					inline: true,
+				},
+				{
+					name: "Mode :moneybag:",
+					value: product.mode,
+					inline: true,
+				},
+				{
+					name: "User :bust_in_silhouette:",
+					value: `||<@${product.discordID}>||`,
+					inline: true,
+				},
+			]),
+			(this.footer = {
+				text: "HyperionScripts v0.3-beta",
+				icon_url:
+					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
+			}),
+			(this.color = hexToDecimal("#ceb666")),
+			(this.timestamp = new Date());
+		(this.thumbnail = {
+			url: product.imageURL,
+		}),
+			(this.image = {});
+	}
+}
+
+class requestsPrivateWebhook {
 	constructor(product, payPalURL) {
 		(this.author = {
 			name: "",
@@ -127,8 +187,73 @@ class privateWebhook {
 					inline: true,
 				},
 				{
-					name: "Time :clock1:",
-					value: `${product.time}ms`,
+					name: "ATC time :clock1:",
+					value: `${product.ATCtime}ms`,
+					inline: true,
+				},
+				{
+					name: "Checkout time :clock1:",
+					value: `${product.checkoutTime}ms`,
+					inline: true,
+				},
+				{
+					name: "User :bust_in_silhouette:",
+					value: `||${product.user}||`,
+					inline: true,
+				},
+			]),
+			(this.footer = {
+				text: "HyperionScripts v0.3-beta",
+				icon_url:
+					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
+			}),
+			(this.color = hexToDecimal("#ceb666")),
+			(this.timestamp = new Date());
+		(this.thumbnail = {
+			url: product.imageURL,
+		}),
+			(this.image = {});
+	}
+}
+
+class safePrivateWebhook {
+	constructor(product, payPalURL) {
+		(this.author = {
+			name: "",
+		}),
+			(this.title = ":zap: OH LOOK, THAT'S A CHECKOUT! :zap:"),
+			(this.url = payPalURL),
+			(this.description =
+				"HyperionScripts managed to check out an item! Click the link above to pay."),
+			(this.fields = [
+				{
+					name: "Brand :ticket:",
+					value: product.brand,
+					inline: true,
+				},
+				{
+					name: "Model :label:",
+					value: product.model,
+					inline: true,
+				},
+				{
+					name: "Size :straight_ruler:",
+					value: product.size,
+					inline: true,
+				},
+				{
+					name: "Website :globe_with_meridians:",
+					value: product.website,
+					inline: true,
+				},
+				{
+					name: "Price :moneybag:",
+					value: product.price,
+					inline: true,
+				},
+				{
+					name: "Mode :moneybag:",
+					value: product.mode,
 					inline: true,
 				},
 				{
@@ -159,20 +284,41 @@ if (location.toString().includes("paypal.com")) {
 				username: "HyperionScripts notifier",
 				avatar_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833348781969637437/HyperionScripts_logo.png",
-				embeds: [new publicWebhook(result.checkout.lastCheckout)],
 			};
+
+			if (result.checkout.lastCheckout.mode === "SAFE") {
+				publicParams.embeds = [
+					new safePublicWebhook(result.checkout.lastCheckout),
+				];
+			} else if (result.checkout.lastCheckout.mode === "REQUESTS") {
+				publicParams.embeds = [
+					new requestsPublicWebhook(
+						result.checkout.lastCheckout
+					),
+				];
+			}
 
 			var privateParams = {
 				username: "HyperionScripts notifier",
 				avatar_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833348781969637437/HyperionScripts_logo.png",
-				embeds: [
-					new privateWebhook(
+			};
+
+			if (result.checkout.lastCheckout.mode === "SAFE") {
+				privateParams.embeds = [
+					new safePrivateWebhook(
 						result.checkout.lastCheckout,
 						location.toString()
 					),
-				],
-			};
+				];
+			} else if (result.checkout.lastCheckout.mode === "REQUESTS") {
+				privateParams.embeds = [
+					new requestsPrivateWebhook(
+						result.checkout.lastCheckout,
+						location.toString()
+					),
+				];
+			}
 
 			publicWebhookRequest.send(JSON.stringify(publicParams));
 			privateWebhookRequest.send(JSON.stringify(privateParams));

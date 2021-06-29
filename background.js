@@ -20,3 +20,26 @@ chrome.webRequest.onCompleted.addListener(passRequest, {
 chrome.browserAction.onClicked.addListener(function (tab) {
 	chrome.runtime.openOptionsPage();
 });
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	console.log(
+		sender.tab
+			? "from a content script:" + sender.tab.url
+			: "from the extension"
+	);
+	if (request.action == "exportSettings") downloadConfig();
+});
+
+function downloadConfig() {
+	chrome.storage.local.get(null, function (items) {
+		var result = JSON.stringify(items);
+
+		var url =
+			"data:application/json;base64," +
+			btoa(unescape(encodeURIComponent(result)));
+		chrome.downloads.download({
+			url: url,
+			filename: "config.json",
+		});
+	});
+}

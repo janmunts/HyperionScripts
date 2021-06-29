@@ -1,0 +1,35 @@
+{
+	"websites": {
+		"solebox": {
+			"profile": {},
+			"mode": "SAFE",
+			"sizes": []
+		},
+		"snipes": {
+			"profile": {},
+			"mode": "SAFE",
+			"sizes": []
+		},
+		"zalando": {
+			"profile": {},
+			"mode": "SAFE",
+			"sizes": []
+		}
+	},
+	"checkout": {
+		"lastCheckout": {
+			"brand": "",
+			"size": "",
+			"model": "",
+			"website": "",
+			"price": "",
+			"user": "",
+			"imageURL": "",
+			"payPalURL": "",
+			"time": 0,
+			"webhookMessageSent": false
+		},
+		"history": [{}, {}],
+		"totalCheckouts": 10
+	}
+}
