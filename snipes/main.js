@@ -1,5 +1,57 @@
 // snipes\main.js
 
+if (
+	location
+		.toString()
+		.slice(
+			location
+				.toString()
+				.indexOf(".", location.toString().indexOf(".") + 1),
+			location
+				.toString()
+				.indexOf(
+					"/",
+					location
+						.toString()
+						.indexOf(
+							".",
+							location.toString().indexOf(".") + 1
+						) + 1
+				)
+		) !== ".es"
+) {
+	location.replace(
+		location
+			.toString()
+			.replace(
+				location
+					.toString()
+					.slice(
+						location
+							.toString()
+							.indexOf(
+								".",
+								location.toString().indexOf(".") + 1
+							),
+						location
+							.toString()
+							.indexOf(
+								"/",
+								location
+									.toString()
+									.indexOf(
+										".",
+										location
+											.toString()
+											.indexOf(".") + 1
+									) + 1
+							)
+					),
+				".es"
+			)
+	);
+}
+
 console.clear();
 
 chrome.storage.local.get(
@@ -96,7 +148,7 @@ const global = {
 				);
 				script.appendChild(scriptCode);
 
-				document.body.appendChild(script);
+				document.documentElement.appendChild(script);
 			};
 
 			var jqueryTag = document.createElement("script");
@@ -104,15 +156,15 @@ const global = {
 			jqueryTag.src =
 				"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js";
 			jqueryTag.onload = function () {
-				document.head.appendChild(toastrTag);
+				document.documentElement.appendChild(toastrTag);
 			};
-			document.head.appendChild(jqueryTag);
+			document.documentElement.appendChild(jqueryTag);
 
 			var cssTag = document.createElement("link");
 			cssTag.rel = "stylesheet";
 			cssTag.href =
 				"//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css";
-			document.head.appendChild(cssTag);
+			document.documentElement.appendChild(cssTag);
 		},
 		send(type, data) {
 			if (global.notifications.loaded) {
@@ -180,6 +232,37 @@ const global = {
 			} else {
 				global.notifications.sendOnLoad.push([type, data]);
 			}
+		},
+	},
+	overlay: {
+		inject() {
+			var overlay = document.createElement("div");
+			overlay.id = "HS overlay";
+			overlay.style =
+				"position:fixed;top:0px;z-index: 99999;pointer-events: none;";
+			// overlay.style.border = "5px solid rgba(206, 182, 102, 0.5)";
+			overlay.style.boxShadow =
+				"inset 0 0 6px 3px rgba(206, 182, 102, 1)"; // box-shadow:
+			overlay.style.width = window.innerWidth - 15 + "px";
+			overlay.style.height = window.innerHeight + "px";
+
+			document
+				.getElementsByTagName("html")[0]
+				.insertBefore(
+					overlay,
+					document.getElementsByTagName("body")[0]
+				);
+
+			window.addEventListener(
+				"resize",
+				function (event) {
+					document.getElementById("HS overlay").style.width =
+						window.innerWidth - 15 + "px";
+					document.getElementById("HS overlay").style.height =
+						window.innerHeight + "px";
+				},
+				true
+			);
 		},
 	},
 };
@@ -646,7 +729,7 @@ const requests = {
 	urlCheck() {
 		url = location.toString();
 		if (url.includes(paths.login) || url.includes(paths.checkout.login)) {
-			global.waitForDOM(requests.login);
+			global.waitForDOM(requests.login.getData);
 		} else if (url.includes(paths.cart)) {
 			chrome.storage.local.get(["settings"], function (result) {
 				if (result.settings.features.preCart.generating === true) {
@@ -654,7 +737,7 @@ const requests = {
 				}
 			});
 		} else if (url.includes(paths.product)) {
-			global.waitForDOM(requests.product.checkPID);
+			requests.product.checkPID();
 		} else if (url.includes(paths.checkout.path)) {
 			global.waitForDOM(requests.checkout.shipping.process);
 		}
@@ -769,104 +852,133 @@ const requests = {
 			}
 		);
 	},
-	login() {
-		console.log(
-			`%cHyperionScripts - Logging in...`,
-			"color: rgb(206, 182, 102); font-size: 12px"
-		);
-		const CSRFtoken = document.querySelector("[name='csrf_token']").value;
-		const ID = document.querySelectorAll("[data-value]")[0].dataset.id,
-			value =
-				document.querySelectorAll("[data-value]")[0].dataset.value;
+	login: {
+		data: { CSRF: "", ID: "", value: "" },
+		getData() {
+			console.log(
+				`%cHyperionScripts - Logging in...`,
+				"color: rgb(206, 182, 102); font-size: 12px"
+			);
 
-		// function getCookies() {
-		// 	var ca = document.cookie.split(";");
-		// 	ca.forEach(function(cookie) {
-		// 		if (cookie.split("=")[1] !== undefined) {
-		// 			if (cookie.split("=")[1].length === 32) {
-		// 				console.log(cookie)
-		// 			}
-		// 		}
-
-		// 	})
-		// 	for (var i = 0; i < ca.length; i++) {
-		// 		var c = ca[i];
-		// 		while (c.charAt(0) == " ") c = c.substring(1, c.length);
-		// 		if (c.indexOf(nameEQ) == 0)
-		// 			return c.substring(nameEQ.length, c.length);
-		// 	}
-		// }
-
-		// cv: a6dbac7669dbe10757313cdf644bbe26
-		// ch: c88e1afa30026c37aa2237c0a8aca975
-		// rh: 32bb9b22b6c0da0d8d5c82169a658c8e
-
-		function readCookie(name) {
-			var nameEQ = name + "=";
-			var ca = document.cookie.split(";");
-			for (var i = 0; i < ca.length; i++) {
-				var c = ca[i];
-				while (c.charAt(0) == " ") c = c.substring(1, c.length);
-				if (c.indexOf(nameEQ) == 0)
-					return c.substring(nameEQ.length, c.length);
-			}
-			return null;
-		}
-
-		const ccsid = readCookie("ccsid");
-		const rh = readCookie("rh");
-
-		chrome.storage.local.get(["websites", "settings"], function (result) {
-			fetch(
-				`https://www.snipes${requests.regionData.snipesRegion}/authentication?rurl=1&format=ajax`,
-				{
-					headers: {
-						accept: "application/json, text/javascript, */*; q=0.01",
-						"accept-language": "en,ca;q=0.9,es;q=0.8",
-						"content-type":
-							"application/x-www-form-urlencoded; charset=UTF-8",
-						"sec-ch-ua":
-							'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
-						"sec-ch-ua-mobile": "?0",
-						"sec-fetch-dest": "empty",
-						"sec-fetch-mode": "cors",
-						"sec-fetch-site": "same-origin",
-						"x-requested-with": "XMLHttpRequest",
-					},
-					referrer: location.toString(),
-					referrerPolicy: "strict-origin-when-cross-origin",
-					body: `${ID}=${value}&dwfrm_profile_customer_email=${result.websites.snipes.profile.email}&dwfrm_profile_login_password=${result.websites.snipes.profile.password}&csrf_token=${CSRFtoken}`,
-					// body: `${ccsid}=${rh}&dwfrm_profile_customer_email=${result.websites.snipes.profile.email}&dwfrm_profile_login_password=${result.websites.snipes.profile.password}&csrf_token=${CSRFtoken}`,
-					method: "POST",
-					mode: "cors",
-					credentials: "include",
-				}
-			)
-				.then((response) => response.json())
-				.then((data) => {
-					console.log(data);
-					if (data.success === true) {
-						console.log(
-							`%cHyperionScripts - %cSuccessfully logged in!`,
-							"color: rgb(206, 182, 102); font-size: 12px",
-							"color: rgb(100, 200, 0); font-size: 12px"
-						);
-						global.notifications.send("success", {
-							title: "Successfully logged in!",
-						});
-						// requests.logout();
-					} else {
-						console.error(
-							`%cHyperionScripts - %cCould not log in!`,
-							"color: rgb(206, 182, 102); font-size: 12px",
-							"color: rgb(206, 182, 102); font-size: 12px"
-						);
-						global.notifications.send("error", {
-							title: "Could not log in!",
-						});
-					}
+			if (location.toString().includes(paths.login)) {
+				document.addEventListener("DOMContentLoaded", function () {
+					requests.login.data.CSRF = document.querySelector(
+						"[name='csrf_token']"
+					).value;
+					requests.login.data.ID =
+						document.querySelectorAll(
+							"[data-value]"
+						)[0].dataset.id;
+					requests.login.data.value =
+						document.querySelectorAll(
+							"[data-value]"
+						)[0].dataset.value;
+					requests.login.submit();
 				});
-		});
+			} else {
+				fetch(
+					`https://www.snipes.${requests.regionData.snipesRegion}/login`
+				)
+					.then((response) => response.text())
+					.then((data) => {
+						const loginValues = data.slice(
+							data.lastIndexOf(
+								"<",
+								data.indexOf("data-value")
+							),
+							data.indexOf(">", data.indexOf("data-value"))
+						);
+						var indices = [];
+						for (var i = 0; i < loginValues.length; i++) {
+							if (loginValues[i] === '"') indices.push(i);
+						}
+						requests.login.data.ID = loginValues.slice(
+							indices[0] + 1,
+							indices[1]
+						);
+						requests.login.data.value = loginValues.slice(
+							indices[2] + 1,
+							indices[3]
+						);
+
+						const CSRFdata = data.slice(
+							data.lastIndexOf(
+								"<",
+								data.indexOf("csrf_token")
+							),
+							data.indexOf(">", data.indexOf("csrf_token"))
+						);
+
+						indices = [];
+						for (var i = 0; i < CSRFdata.length; i++) {
+							if (CSRFdata[i] === '"') indices.push(i);
+						}
+						requests.login.data.CSRF = CSRFdata.slice(
+							indices[4] + 1,
+							indices[5]
+						);
+
+						requests.login.submit();
+					});
+			}
+		},
+		submit() {
+			chrome.storage.local.get(
+				["websites", "settings"],
+				function (result) {
+					fetch(
+						`https://www.snipes${requests.regionData.snipesRegion}/authentication?rurl=1&format=ajax`,
+						{
+							headers: {
+								accept: "application/json, text/javascript, */*; q=0.01",
+								"accept-language":
+									"en,ca;q=0.9,es;q=0.8",
+								"content-type":
+									"application/x-www-form-urlencoded; charset=UTF-8",
+								"sec-ch-ua":
+									'"Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"',
+								"sec-ch-ua-mobile": "?0",
+								"sec-fetch-dest": "empty",
+								"sec-fetch-mode": "cors",
+								"sec-fetch-site": "same-origin",
+								"x-requested-with": "XMLHttpRequest",
+							},
+							referrer: location.toString(),
+							referrerPolicy:
+								"strict-origin-when-cross-origin",
+							body: `${requests.login.data.ID}=${requests.login.data.value}&dwfrm_profile_customer_email=${result.websites.snipes.profile.email}&dwfrm_profile_login_password=${result.websites.snipes.profile.password}&csrf_token=${requests.login.data.CSRF}`,
+							method: "POST",
+							mode: "cors",
+							credentials: "include",
+						}
+					)
+						.then((response) => response.json())
+						.then((data) => {
+							console.log(data);
+							if (data.success === true) {
+								console.log(
+									`%cHyperionScripts - %cSuccessfully logged in!`,
+									"color: rgb(206, 182, 102); font-size: 12px",
+									"color: rgb(100, 200, 0); font-size: 12px"
+								);
+								global.notifications.send("success", {
+									title: "Successfully logged in!",
+								});
+								// requests.logout();
+							} else {
+								console.error(
+									`%cHyperionScripts - %cCould not log in!`,
+									"color: rgb(206, 182, 102); font-size: 12px",
+									"color: rgb(206, 182, 102); font-size: 12px"
+								);
+								global.notifications.send("error", {
+									title: "Could not log in!",
+								});
+							}
+						});
+				}
+			);
+		},
 	},
 	logout() {
 		console.log(
@@ -926,13 +1038,15 @@ const requests = {
 							location.toString().lastIndexOf(".")
 						)
 				);
+				window.stop();
 			} else {
-				requests.product.sizes.select();
+				document.addEventListener("DOMContentLoaded", function () {
+					requests.product.sizes.select();
+				});
 			}
 		},
 		sizes: {
 			anySelected: false,
-			selectedNumber: undefined,
 			list: [],
 			available: {
 				list: [],
@@ -944,101 +1058,88 @@ const requests = {
 					`%cHyperionScripts - Selecting sizes...`,
 					"color: rgb(206, 182, 102); font-size: 12px"
 				);
+				this.list = document.querySelectorAll(
+					"[data-attr-id='size']"
+				);
 
-				const waitForSizePid = setInterval(function () {
+				window.stop();
+
+				this.list.forEach((size) => {
 					if (
-						document
-							.getElementsByClassName(
-								"f-pdp-button f-pdp-button--active js-btn-add-to-cart"
-							)[0]
-							.getAttribute("data-pid").length > 15
+						size.children[0].className.includes(
+							"b-swatch-value--selected"
+						)
 					) {
-						clearInterval(waitForSizePid);
+						this.anySelected = true;
 						requests.product.addToCart(
-							document
-								.getElementsByClassName(
-									"f-pdp-button f-pdp-button--active js-btn-add-to-cart"
-								)[0]
-								.getAttribute("data-pid")
+							size.getAttribute("data-variant-id")
 						);
 						return;
-					}
-				}, 250);
-
-				const sizeQuerySelectorValues =
-					document.querySelectorAll("[data-attr-value]");
-				sizeQuerySelectorValues.forEach((size) => {
-					if (size.className.includes("b-size-value")) {
-						safe.product.sizes.list.push(size);
 					}
 				});
 
 				this.list.forEach((size) => {
 					if (
-						size.className.includes(
-							"b-swatch-value--selected"
-						)
-					) {
-						this.anySelected = true;
-						return;
-					}
-				});
-				safe.product.sizes.list.forEach((size) => {
-					if (
-						size.className.includes(
+						size.children[0].className.includes(
 							"b-swatch-value--orderable"
 						) &&
-						!size.className.includes(
+						!size.children[0].className.includes(
 							"b-swatch-value--sold-out"
 						)
 					) {
-						safe.product.sizes.available.list.push(size);
+						this.available.list.push(size);
 					} else {
-						safe.product.sizes.soldOut.push(size);
+						this.soldOut.push(size);
 					}
 				});
-				safe.product.sizes.available.list.forEach((size) => {
-					safe.product.sizes.available.numbers.push(
-						size.getAttribute("data-attr-value")
-					);
+
+				this.available.list.forEach((size) => {
+					this.available.numbers.push(size.dataset.value);
 				});
 				chrome.storage.local.get(["websites"], function (result) {
 					const sizes = result.websites.snipes.sizes;
-					if (safe.product.sizes.available.list.length > 0) {
+					if (requests.product.sizes.available.list.length > 0) {
 						if (typeof sizes === "string") {
 							if (sizes.toLowerCase() === "random") {
 								const randomIndex = Math.round(
 									Math.random() *
-										(safe.product.sizes.available
-											.list.length -
+										(requests.product.sizes
+											.available.list.length -
 											1)
 								);
-								safe.product.sizes.available.list[
-									randomIndex
-								].click();
+								requests.product.addToCart(
+									requests.product.sizes.available.list[
+										randomIndex
+									].getAttribute("data-variant-id")
+								);
 							}
 						} else if (!sizes.length > 0) {
-							safe.product.sizes.available.list[0].click();
+							requests.product.addToCart(
+								requests.product.sizes.available.list[0].getAttribute(
+									"data-variant-id"
+								)
+							);
 						} else {
 							let success = false;
 							sizes.forEach((size) => {
 								if (
-									safe.product.sizes.available.numbers.includes(
+									requests.product.sizes.available.numbers.includes(
 										size.toString()
 									) &&
 									success === false
 								) {
-									safe.product.sizes.available.list.forEach(
+									requests.product.sizes.available.list.forEach(
 										(sizeElement) => {
 											if (
-												sizeElement.getAttribute(
-													"data-attr-value"
-												) ===
+												sizeElement.dataset
+													.value ===
 												size.toString()
 											) {
-												sizeElement.click();
-												safe.product.sizes.selectedNumber =
-													size;
+												requests.product.addToCart(
+													sizeElement.getAttribute(
+														"data-variant-id"
+													)
+												);
 												success = true;
 												return;
 											}
@@ -1047,9 +1148,12 @@ const requests = {
 								}
 							});
 							if (success === false) {
-								safe.product.sizes.available.list[0].click();
+								requests.product.addToCart(
+									requests.product.sizes.available.list[0].getAttribute(
+										"data-variant-id"
+									)
+								);
 							}
-
 							console.log(
 								`%cHyperionScripts - %cSuccessfully selected size!`,
 								"color: rgb(206, 182, 102); font-size: 12px",
@@ -1116,6 +1220,7 @@ const requests = {
 							title: "Could not add to cart.",
 							content: `Error: '${data.message}'`,
 						});
+						requests.product.sizes.select();
 					}
 				});
 		},
@@ -1215,35 +1320,53 @@ const requests = {
 									requests.checkout.shipping
 										.attempts === 1
 								) {
-									window.open(
-										location
-											.toString()
-											.slice(
-												0,
-												location
-													.toString()
-													.indexOf(
-														"/",
-														location
-															.toString()
-															.indexOf(
-																"snipes."
-															)
-													)
-											) + paths.login
-									);
+									// window.open(
+									// 	location
+									// 		.toString()
+									// 		.slice(
+									// 			0,
+									// 			location
+									// 				.toString()
+									// 				.indexOf(
+									// 					"/",
+									// 					location
+									// 						.toString()
+									// 						.indexOf(
+									// 							"snipes."
+									// 						)
+									// 				)
+									// 		) + paths.login
+									// );
+									requests.login.getData();
 								}
+								chrome.runtime.onMessage.addListener(
+									(
+										message,
+										sender,
+										sendResponse
+									) => {
+										if (
+											message.request.url.includes(
+												"snipes."
+											) &&
+											message.request.url.includes(
+												"authentication"
+											) &&
+											message.request
+												.statusCode < 400
+										) {
+											requests.checkout.shipping.process();
+										}
+									}
+								);
 								console.error(
-									`%cHyperionScripts - User not logged in! Retrying in 3 seconds... Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
+									`%cHyperionScripts - User not logged in! Trying to log-in... Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
 									"color: rgb(206, 182, 102); font-size: 12px"
 								);
 								global.notifications.send("error", {
-									title: "User not logged in! Retrying in 3 seconds...",
+									title: "User not logged in! Trying to log-in...",
 									content: `Try ${requests.checkout.shipping.attempts} of ${requests.checkout.retryAttempts}.`,
 								});
-								setTimeout(function () {
-									requests.checkout.shipping.process();
-								}, 3000);
 							} else {
 								console.error(
 									`%cHyperionScripts - Could not get user addresses. Reload the page to try again.`,

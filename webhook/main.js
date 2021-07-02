@@ -73,7 +73,7 @@ class requestsPublicWebhook {
 				},
 			]),
 			(this.footer = {
-				text: "HyperionScripts v0.3-beta",
+				text: "HyperionScripts v0.4-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),
@@ -133,7 +133,7 @@ class safePublicWebhook {
 				},
 			]),
 			(this.footer = {
-				text: "HyperionScripts v0.3-beta",
+				text: "HyperionScripts v0.4-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),
@@ -203,7 +203,7 @@ class requestsPrivateWebhook {
 				},
 			]),
 			(this.footer = {
-				text: "HyperionScripts v0.3-beta",
+				text: "HyperionScripts v0.4-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),
@@ -263,7 +263,7 @@ class safePrivateWebhook {
 				},
 			]),
 			(this.footer = {
-				text: "HyperionScripts v0.3-beta",
+				text: "HyperionScripts v0.4-beta",
 				icon_url:
 					"https://cdn.discordapp.com/attachments/833348728248467466/833364016965484554/No_backround.png",
 			}),

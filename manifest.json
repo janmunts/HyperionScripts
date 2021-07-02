@@ -1,6 +1,6 @@
 {
 	"name": "HyperionScripts Beta",
-	"version": "0.3",
+	"version": "0.0.4",
 	"manifest_version": 2,
 	"description": "HyperionScripts, always a wise choice.",
 	"content_scripts": [
@@ -10,7 +10,8 @@
 		},
 		{
 			"matches": ["https://www.solebox.com/*"],
-			"js": ["solebox/main.js"]
+			"js": ["solebox/main.js"],
+			"run_at": "document_start"
 		},
 		{
 			"matches": [
@@ -22,11 +23,13 @@
 				"https://www.snipes.be/*",
 				"https://www.snipes.es/*"
 			],
-			"js": ["snipes/main.js"]
+			"js": ["snipes/main.js"],
+			"run_at": "document_start"
 		},
 		{
 			"matches": ["https://www.zalando.es/*"],
-			"js": ["zalando/main.js"]
+			"js": ["zalando/main.js"],
+			"run_at": "document_start"
 		},
 		{
 			"matches": ["https://www.luisaviaroma.com/*"],
