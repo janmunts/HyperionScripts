@@ -786,7 +786,6 @@ const requests = {
 					)
 						.then((response) => response.json())
 						.then((data) => {
-							console.log(data);
 							if (data.success === true) {
 								console.log(
 									`%cHyperionScripts - %cSuccessfully logged in!`,
@@ -855,7 +854,6 @@ const requests = {
 				this.list = document.querySelectorAll(
 					"[data-attr-id='size']"
 				);
-				console.log(this.list);
 
 				// window.stop();
 
@@ -874,7 +872,6 @@ const requests = {
 				});
 
 				this.list.forEach((size) => {
-					console.log(size);
 					if (
 						size.children[0].className.includes(
 							"b-swatch-value--orderable"
@@ -960,7 +957,7 @@ const requests = {
 				});
 			},
 		},
-		addToCart(pid) {
+		addToCart(PID) {
 			console.log(
 				`%cHyperionScripts - Adding to cart...`,
 				"color: rgb(206, 182, 102); font-size: 12px"
@@ -981,7 +978,7 @@ const requests = {
 				},
 				referrer: location.toString(),
 				referrerPolicy: "strict-origin-when-cross-origin",
-				body: `pid=${pid}&quantity=1`,
+				body: `pid=${PID}&quantity=1`,
 				method: "POST",
 				mode: "cors",
 				credentials: "include",
@@ -996,7 +993,7 @@ const requests = {
 						);
 						global.notifications.send("success", {
 							title: "Successfully added to cart!",
-							content: `Product ID: ${pid}`,
+							content: `Product ID: ${PID}`,
 						});
 						requests.product.time.finish = new Date();
 						requests.product.time.total =

@@ -74,7 +74,6 @@ chrome.storage.local.get(
 						) {
 							global.notifications.inject();
 							requests.checkRegion();
-							// requests.login();
 							requests.urlCheck();
 						}
 					}
@@ -301,17 +300,21 @@ const safe = {
 		if (url.includes(".es")) {
 			safe.sizeAttrClassname = "talla Talla-";
 		} else if (url.includes(".com")) {
-			safe.sizeAttrClassname = "talla Talla-";
+			safe.sizeAttrClassname = "size Size-";
 		} else if (url.includes(".at")) {
-			safe.sizeAttrClassname = "talla Talla-";
+			safe.sizeAttrClassname = "size Size-";
 		} else if (url.includes(".nl")) {
-			safe.sizeAttrClassname = "talla Talla-";
+			safe.sizeAttrClassname = "maat Maat-";
 		} else if (url.includes(".fr")) {
-			safe.sizeAttrClassname = "talla Talla-";
+			safe.sizeAttrClassname = "taille Taille-";
 		} else if (url.includes(".it")) {
 			safe.sizeAttrClassname = "taglia Taglia-";
 		} else if (url.includes(".be")) {
-			safe.sizeAttrClassname = "talla Talla-";
+			if (url.includes("/fr")) {
+				safe.sizeAttrClassname = "taille Taille-";
+			} else if (url.includes("/nl")) {
+				safe.sizeAttrClassname = "maat Maat-";
+			}
 		}
 	},
 	saveItemInfo() {
@@ -770,7 +773,7 @@ const requests = {
 			requests.regionData.sizeAttrClassname = "maat Maat-";
 		} else if (url.includes(".fr")) {
 			requests.regionData.snipesRegion = ".fr";
-			requests.regionData.snipesRegion = "fr_FR";
+			requests.regionData.snipesRegion2 = "fr_FR";
 			requests.regionData.dwRegion = "Sites-snse-FR-Site";
 			requests.regionData.delivery = "home-delivery_fr";
 			requests.regionData.sizeAttrClassname = "taille Taille-";
@@ -877,7 +880,7 @@ const requests = {
 				});
 			} else {
 				fetch(
-					`https://www.snipes.${requests.regionData.snipesRegion}/login`
+					`https://www.snipes${requests.regionData.snipesRegion}/login`
 				)
 					.then((response) => response.text())
 					.then((data) => {
@@ -954,7 +957,6 @@ const requests = {
 					)
 						.then((response) => response.json())
 						.then((data) => {
-							console.log(data);
 							if (data.success === true) {
 								console.log(
 									`%cHyperionScripts - %cSuccessfully logged in!`,
@@ -1005,7 +1007,6 @@ const requests = {
 				credentials: "include",
 			}
 		).then((response) => {
-			console.log(response);
 			if (response.ok) {
 				console.log(
 					`%cHyperionScripts - %cSuccessfully logged out!`,
@@ -1164,7 +1165,7 @@ const requests = {
 				});
 			},
 		},
-		addToCart(pid) {
+		addToCart(PID) {
 			console.log(
 				`%cHyperionScripts - Adding to cart...`,
 				"color: rgb(206, 182, 102); font-size: 12px"
@@ -1187,7 +1188,7 @@ const requests = {
 					},
 					referrer: location.toString(),
 					referrerPolicy: "strict-origin-when-cross-origin",
-					body: `pid=${pid}&quantity=1`,
+					body: `pid=${PID}&quantity=1`,
 					method: "POST",
 					mode: "cors",
 					credentials: "include",
@@ -1203,7 +1204,7 @@ const requests = {
 						);
 						global.notifications.send("success", {
 							title: "Successfully added to cart!",
-							content: `Product ID: ${pid}`,
+							content: `Product ID: ${PID}`,
 						});
 						requests.product.time.finish = new Date();
 						requests.product.time.total =
