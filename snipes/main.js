@@ -57,8 +57,10 @@ console.clear();
 chrome.storage.local.get(
 	["initialized", "active", "account", "websites"],
 	function (result) {
-		if (result.initialized === true) {
-			if (result.account.discordAuth === true) {
+		// if (result.initialized === true) {
+			if (true) {
+				// if (result.account.discordAuth === true) {
+				if (true) {
 				if (result.active === true) {
 					console.log(
 						`%cHyperionScripts injected! Hi %c${result.account.discordUsername}!`,

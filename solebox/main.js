@@ -5,8 +5,10 @@ console.clear();
 chrome.storage.local.get(
 	["initialized", "active", "account", "websites"],
 	function (result) {
-		if (result.initialized === true) {
-			if (result.account.discordAuth === true) {
+		// if (result.initialized === true) {
+		if (true) {
+			// if (result.account.discordAuth === true) {
+			if (true) {
 				if (result.active === true) {
 					console.log(
 						`%cHyperionScripts injected! Hi %c${result.account.discordUsername}!`,
@@ -64,7 +66,9 @@ const paths = {
 
 const global = {
 	waitForDOM(callback, data) {
-		document.addEventListener("DOMContentLoaded", callback(data));
+		document.addEventListener("DOMContentLoaded", function () {
+			callback(data);
+		});
 	},
 	notifications: {
 		loaded: false,
@@ -833,9 +837,9 @@ const requests = {
 				);
 				window.stop();
 			} else {
-				document.addEventListener("DOMContentLoaded", function () {
-					requests.product.sizes.select();
-				});
+				// document.addEventListener("DOMContentLoaded", function () {
+				requests.product.sizes.select();
+				// });
 			}
 		},
 		sizes: {

@@ -1,17 +1,20 @@
 chrome.storage.local.get(["initialized"], function (result) {
 	if (result.initialized === true) {
 		chrome.storage.local.get(["account"], function (result) {
-			if (result.account) {
-				if (result.account.discordAuth === true) {
-					location.replace(
-						"PROFILES _ HyperionScripts GUI.html"
-					);
-				} else {
-					discordAuth();
-				}
-			} else {
-				discordAuth();
-			}
+			location.replace(
+				"PROFILES _ HyperionScripts GUI.html"
+			);
+			// if (result.account) {
+			// 	if (result.account.discordAuth === true) {
+			// 		location.replace(
+			// 			"PROFILES _ HyperionScripts GUI.html"
+			// 		);
+			// 	} else {
+			// 		discordAuth();
+			// 	}
+			// } else {
+			// 	discordAuth();
+			// }
 		});
 	} else {
 		chrome.storage.local.set({

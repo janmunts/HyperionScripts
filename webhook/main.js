@@ -2,7 +2,7 @@
 var publicWebhookRequest = new XMLHttpRequest();
 publicWebhookRequest.open(
 	"POST",
-	"https://discord.com/api/webhooks/837352239218950164/pXWqUCf_V_6_8eVhWQ-WWxhdA5ofcB8znewQnvsnmxdNnRdzacqqlyRE7lNBZJtN3nUg"
+	"https://discord.com/api/webhooks/867426606947368960/WJ1EOAUpu6UWvBZEiuu9VX8wO4VSAuQxP128uo6BjfQOgpn-gjPOXYWHZ7oKRm3TPkg6"
 );
 publicWebhookRequest.setRequestHeader("Content-type", "application/json");
 
